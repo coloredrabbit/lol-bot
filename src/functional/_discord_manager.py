@@ -6,9 +6,13 @@ from resource.stringconstant import *
 
 app = commands.Bot(command_prefix='!')
 
+riotApiManager = None
 # general
-def discordBotRun(discordBotToken):
+def discordBotRun(_riotApiManager, discordBotToken):
     #TODO check whether if app already running
+    global riotApiManager
+    riotApiManager = _riotApiManager
+    print(riotApiManager)
     app.run(discordBotToken)
 
 # message
@@ -35,11 +39,9 @@ async def local(ctx, *, text):
     await ctx.send(text)
 
 
-@app.command()
-async def rot(ctx, *, text):
-    #TODO use riotApiManager
-    #res = sendHttpRequest('/lol/platform/v3/champion-rotations')
-    await ctx.send(text)
+@app.command(aliases=['로테', '로테이션'])
+async def rot(ctx):
+    await ctx.send(riotApiManager.getChampionRotation())
 
 # [civil war]
 participants = set()

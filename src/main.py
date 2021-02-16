@@ -2,10 +2,9 @@
 import json
 
 # module
-from functional._discord_manager import *
 from resource.stringconstant import *
-# from functional._riot_manager import *
-
+from functional._discord_manager import discordBotRun
+from functional._riot_manager import createRiotApiManager
 
 # keyManager = {
 #     "discordBotToken": "key value, String",
@@ -13,8 +12,6 @@ from resource.stringconstant import *
 # }
 keyManager = json.load(open('./key.json', 'r'))
 
-# riotApiManager = createRiotApiManager()
-# riotApiManager.setKey(keyManager.riotApiKey)
-
-# discordManager = createDiscordManager(, None)
-discordBotRun(keyManager["discordBotToken"])
+riotApiManager = createRiotApiManager(keyManager["riotApiKey"])
+discordBotRun(riotApiManager, keyManager["discordBotToken"])
+#discordBotRun(createRiotApiManager(keyManager["riotApiKey"]), keyManager["discordBotToken"])

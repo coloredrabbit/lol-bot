@@ -2,7 +2,7 @@
 PATH_KEY_JSON_FILE='./key.json'
 
 # global
-URL_CHAMPION_ROTATION='/lol/platform/v3/champion-rotations'
+URL_PATH_CHAMPION_ROTATION='champion-rotations'
 
 
 # message
