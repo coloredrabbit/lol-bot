@@ -2,12 +2,12 @@
 PATH_KEY_JSON_FILE='./key.json'
 
 # global
-URL_CHAMPION_ROTATION='/lol/platform/v3/champion-rotations'
+URL_PATH_CHAMPION_ROTATION='champion-rotations'
 
 
 # message
 MSG_WELCOME_TO_DC_GG='welcome to dc.gg'
-MSG_CURRENT_PARTICIPANTS='Current participants: {}'
+MSG_CURRENT_PARTICIPANTS='Current participants:\r\n{}'
 
 MSG_PARTICIPANTS_ADDED_SUCCESSFULLY='participants added successfully.'
 MSG_PARTICIPANTS_REMOVED_SUCCESSFULLY='participants removed successfully.'
