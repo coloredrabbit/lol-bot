@@ -16,7 +16,6 @@ def discordBotRun(_riotApiManager, discordBotToken):
     #TODO check whether if app already running
     global riotApiManager
     riotApiManager = _riotApiManager
-    print(riotApiManager)
     app.run(discordBotToken)
 
 # message
@@ -34,18 +33,11 @@ async def on_ready():
 async def echo(ctx, *, text):
     await ctx.send(text)
 
-@app.command()
-async def local(ctx, *, text):
-    for validRegion in validRegions:
-        if(validRegion.lower == text):
-            lolWatcherRegion = text
-            await ctx.send(text + 'region setting success')
-    await ctx.send(text)
-
-
 @app.command(aliases=['로테', '로테이션'])
 async def rot(ctx):
-    await ctx.send(riotApiManager.getChampionRotation())
+    message = '\r\n'.join(riotApiManager.getChampionRotation())
+
+    await ctx.send(message)
 
 # [civil war]
 participants = set()

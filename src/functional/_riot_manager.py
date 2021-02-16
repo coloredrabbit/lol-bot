@@ -17,6 +17,7 @@ RIOT_REST_API_FORMAT = "https://{}.api.riotgames.com/lol/platform/{}/{}?api_key=
 RIOT_DDRAGON_CHAMPION_JSON = 'http://ddragon.leagueoflegends.com/cdn/{}/data/{}/champion.json'
 RIOT_DDRAGON_CHAMPION_JSON_FILE_CACHE_PATH = './src/resource/_cache/{}_{}.json'
 
+RIOT_DDRAGON_CHAMPION_SQUARE_ASSETS = 'http://ddragon.leagueoflegends.com/cdn/{}/img/champion/{}.png'
 
 #TODO
 def _riotApiManagerGenerator(riotApiKey):
@@ -56,10 +57,12 @@ def _riotApiManagerGenerator(riotApiKey):
             self._championKey2Name = {}
             for championName in self.champion["data"]:
                 self._championKey2Name[int(self.champion["data"][championName]["key"])] = self.champion["data"][championName]["name"]
+                # self._championKey2Name[int(self.champion["data"][championName]["key"])] = championName
             
             # print(self._championKey2Name) # !debug
 
         def changeRegion(self, riotApiRegion, ddragonApiLocale):
+            #TODO validate regions
             self.riotApiRegion = riotApiRegion
             self.ddragonApiLocale = ddragonApiLocale
             self._loadChampionData()
@@ -78,6 +81,7 @@ def _riotApiManagerGenerator(riotApiKey):
             if(response.ok):
                 result = response.json()
                 return [self._championKey2Name[freeChampionId] for freeChampionId in result["freeChampionIds"]]
+                # return [RIOT_DDRAGON_CHAMPION_SQUARE_ASSETS.format(self.lolReleaseVersion, self._championKey2Name[freeChampionId]) for freeChampionId in result["freeChampionIds"]]
             else:
                 print('error')
                 #TODO show error
