@@ -2,6 +2,9 @@ import ssl
 import discord
 from discord.ext import commands
 
+#다인
+import random
+
 app = commands.Bot(command_prefix='!')
 participants = set()
 
@@ -60,9 +63,25 @@ async def 삭제(ctx, *, text):
 
 #TODO 김다인: random
 @app.command()
-async def random(ctx, *, text):
-    pass
+async def mix_random(ctx, *, text):
+    randomParticipants = list(participants)
+    number_of_people = len(randomParticipants)
+    number_of_teams = int(number_of_people / 5) # 팀 개수
+
+    random.shuffle(randomParticipants) # 팀 랜덤으로 섞기
+    number_of_rest = int(number_of_people % 5) # 팀 나누고 나머지 인원
+    team_group = [] # 랜덤 팀
+
+    for i in range(0,number_of_teams):
+        team_group.append(randomParticipants[0:5])
+        del randomParticipants[0:5]
+    
+    # 팀이 나누어 떨어지지 않을 때
+    if number_of_rest != 0:
+        team_group.append(randomParticipants[0:number_of_rest])
+
+    await ctx.send(team_group)
 
 @app.command()
 async def 랜덤(ctx, *, text):
-    await random(**locals())
+    await mix_random(**locals())
