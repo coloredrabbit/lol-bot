@@ -81,14 +81,14 @@ async def reset(ctx, *, text):
     participants.clear()
     await _show(ctx)
 
+@app.command(aliases=['종료', '서버종료', '꺼져'])
+async def exit(ctx):
+    await ctx.send('시스템을 종료합니다') #TODO
+    sys.exit()    
+
 #TODO 김다인: random
 @app.command(name='랜덤')
 async def mix_random(ctx, *, text):
-    # 서버 끄기
-    if text == '종료':
-        await ctx.send('시스템을 종료합니다')
-        sys.exit()
-    
     if not participants:
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
 
@@ -111,7 +111,3 @@ async def mix_random(ctx, *, text):
             team_group.append(randomParticipants[0:number_of_rest])
 
         await ctx.send(team_group)
-
-@app.command()
-async def 랜덤(ctx, *, text):
-    await mix_random(**locals())
