@@ -40,14 +40,28 @@ async def rot(ctx):
     await ctx.send(message)
 
 # [civil war]
-participants = set()
+'''
+participants = {
+    "{summonerName}": {
+        "id": "",
+        "accountId": "",
+        "puuid": "",
+        "name": "{summonerName}",
+        "profileIconId": Integer,
+        "revisionDate": Integer,
+        "summonerLevel": Integer
+    },
+    ...
+}
+'''
+participants = {}
 
 #TODO get participants by application id
 def _getParticipants():
     return participants
 
 def _getParticipantsAsString():
-    return _createDiscordMessage(MSG_CURRENT_PARTICIPANTS.format('\r\n'.join(participants)))
+    return _createDiscordMessage(MSG_CURRENT_PARTICIPANTS.format('\r\n'.join([name for name in participants])))
 
 # show participants
 @app.command(aliases=['s', '인원', '리스트', '참가자'])
@@ -57,26 +71,53 @@ async def show(ctx):
 # add participants
 @app.command(aliases=['a', '참가', '참여'])
 async def add(ctx, *, text):
-    for participant in text.split(','): 
-        participants.add(participant)
-    await _show(ctx)
+    invalidSummonerNames = []
+    for participant in text.split(','):
+        summonerData = riotApiManager.getSummonerDataByName(participant)
+        if summonerData == None:
+            invalidSummonerNames.append(participant)
+        else:
+            seasonData = riotApiManager.getSummonerCurrentSeasonInfoById(summonerData["id"])
+            summonerData["tier"] = seasonData["tier"]
+            summonerData["rank"] = seasonData["rank"]
+            summonerData["wins"] = seasonData["wins"]
+            summonerData["loses"] = seasonData["loses"]
+
+            participants[participant] = summonerData
+    if invalidSummonerNames:
+        await ctx.send(_createDiscordMessage('Invalid sommoners: \r\n{}'.format('\r\n'.join(invalidSummonerNames))))
+    await show(ctx)
 
 # remove participants
 @app.command(aliases=['rm', '삭제', '제외'])
 async def rem(ctx, *, text):
     for participant in text.split(','):
-        participants.discard(participant)
-    await _show(ctx)
+        participants.pop(participant, None)
+    await show(ctx)
 
 @app.command(aliases=['rs', '초기화', '리셋'])
 async def reset(ctx, *, text):
     participants.clear()
-    await _show(ctx)
+    await show(ctx)
 
 @app.command(aliases=['종료', '서버종료', '꺼져'])
 async def exit(ctx):
-    await ctx.send('시스템을 종료합니다') #TODO
-    sys.exit()    
+    await ctx.send('시스템을 종료합니다') #TODO string resouce
+    sys.exit()
+
+@app.command(aliases=['티어'])
+async def tier(ctx, *, text): # TODO: 인자 하나만 받기
+    summonerData = riotApiManager.getSummonerDataByName(text)
+    if summonerData == None:
+        await ctx.send('No summoner exists: {}', text) #TODO: string resource
+    else:
+        seasonData = riotApiManager.getSummonerCurrentSeasonInfo(text)
+        message = ''
+        if seasonData:
+            message = '{} {} : {} win(s) / {} loss(es) - {} pt'.format(seasonData["tier"], seasonData["rank"], seasonData["wins"], seasonData["losses"], seasonData["leaguePoints"])
+        else:
+            message = 'Unrank' #TODO: string resource
+        await ctx.send(_createDiscordMessage(message))
 
 #TODO 김다인: random
 @app.command(name='랜덤')
