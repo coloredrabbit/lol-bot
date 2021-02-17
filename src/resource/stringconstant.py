@@ -8,12 +8,15 @@ URL_PATH_SUMMONER_CURRENT_SEASON_INFO = '/lol/league/v4/entries/by-summoner/{}' 
 
 URL_PATH_MATCHLISTS = '/lol/match/v4/matchlists/by-account/{}' # param: encryptedAccountId
 URL_PATH_MATCHDATA = '/lol/match/v4/matches/{}' #param: matchId(gameId)
+
+URL_PATH_CHAMPION_MASTERIRES = '/lol/champion-mastery/v4/champion-masteries/by-summoner/{}' # param: encryptedSummonerId
+
 '''
 /riot/account/v1/accounts/by-puuid/{puuid}
 /riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}
 /riot/account/v1/active-shards/by-game/{game}/by-puuid/{puuid}
 
-/lol/champion-mastery/v4/champion-masteries/by-summoner/{encryptedSummonerId}
+[DONE] /lol/champion-mastery/v4/champion-masteries/by-summoner/{encryptedSummonerId}
 /lol/champion-mastery/v4/champion-masteries/by-summoner/{encryptedSummonerId}/by-champion/{championId}
 /lol/champion-mastery/v4/scores/by-summoner/{encryptedSummonerId}
 
@@ -101,7 +104,7 @@ PUT /lol/tournament/v4/codes/{tournamentCode}
 
 # message
 MSG_WELCOME_TO_DC_GG='welcome to dc.gg'
-MSG_CURRENT_PARTICIPANTS='Current participants:\r\n{}'
+MSG_CURRENT_PARTICIPANTS='Current participants'
 
 MSG_PARTICIPANTS_ADDED_SUCCESSFULLY='participants added successfully.'
 MSG_PARTICIPANTS_REMOVED_SUCCESSFULLY='participants removed successfully.'

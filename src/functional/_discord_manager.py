@@ -61,27 +61,55 @@ def _getParticipants():
     return participants
 
 def _getParticipantsAsString():
-    return _createDiscordMessage(MSG_CURRENT_PARTICIPANTS.format('\r\n'.join([name for name in participants])))
+    embed = discord.Embed(title=MSG_CURRENT_PARTICIPANTS)
+    embed.add_field(
+        name = 'Name'
+        , value= '\r\n'.join([name for name in participants])
+        , inline = True
+    )
+    embed.add_field(
+        name = 'Highest mastery'
+        , value= '\r\n'.join([riotApiManager._championKey2Name[participants[name]["championMasteries"][0]['championId']] for name in participants])
+        , inline = True
+    )
+    embed.add_field(
+        name = 'Recent most pick'
+        , value= '\r\n'.join([riotApiManager._championKey2Name[participants[name]["recentMostChampion"][0][0]] for name in participants])
+        , inline = True
+    )
+
+    # embed.set_footer(text=ctx.author.name, icon_url = ctx.author.avatar_url)
+
+    return embed
 
 # show participants
 @app.command(aliases=['s', '인원', '리스트', '참가자'])
 async def show(ctx):
-    await ctx.send(_getParticipantsAsString())
+    await ctx.send(embed=_getParticipantsAsString())
 
 # add participants
 @app.command(aliases=['a', '참가', '참여'])
 async def add(ctx, *, text):
     invalidSummonerNames = []
     for participant in text.split(','):
+        participant = participant.strip()
         summonerData = riotApiManager.getSummonerDataByName(participant)
         if summonerData == None:
             invalidSummonerNames.append(participant)
         else:
             seasonData = riotApiManager.getSummonerCurrentSeasonInfoById(summonerData["id"])
-            summonerData["tier"] = seasonData["tier"]
-            summonerData["rank"] = seasonData["rank"]
-            summonerData["wins"] = seasonData["wins"]
-            summonerData["loses"] = seasonData["loses"]
+            print(seasonData) # !debug
+            if seasonData != None:
+                summonerData["tier"] = seasonData["tier"]
+                summonerData["rank"] = seasonData["rank"]
+                summonerData["wins"] = seasonData["wins"]
+                summonerData["losses"] = seasonData["losses"]
+
+            summonerData["championMasteries"] = riotApiManager._getChampionMasteries(summonerData["id"])
+            summonerData["recentMostChampion"] = riotApiManager._getRecentMostChampion(summonerData["accountId"])
+            
+            print(summonerData["championMasteries"]) # !debug
+            print(summonerData["recentMostChampion"]) # !debug
 
             participants[participant] = summonerData
     if invalidSummonerNames:
@@ -92,7 +120,7 @@ async def add(ctx, *, text):
 @app.command(aliases=['rm', '삭제', '제외'])
 async def rem(ctx, *, text):
     for participant in text.split(','):
-        participants.pop(participant, None)
+        participants.pop(participant.strip(), None)
     await show(ctx)
 
 @app.command(aliases=['rs', '초기화', '리셋'])
@@ -135,7 +163,7 @@ async def record(ctx, *, text): # TODO: 인자 하나만 받기
         message = ''
         if recentMatchList:
             for match in recentMatchList:
-                matchData = riotApiManager.getMatchData(match["gameId"])
+                matchData = riotApiManager._getMatchData(match["gameId"])
                 statKills = 0
                 statDeaths = 0
                 statAssists = 0

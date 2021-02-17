@@ -4,6 +4,8 @@ import os
 import codecs
 import urllib
 
+from collections import defaultdict
+
 from resource.stringconstant import *
 
 # 1. Region
@@ -100,8 +102,8 @@ def _riotApiManagerGenerator(riotApiKey):
                 seasonRecords = response.json()
                 if seasonRecords:
                     for record in seasonRecords:
-                        if record["queueType"] == "RANKED_SOLO_5x5":
-                            return record
+                        #if record["queueType"] == "RANKED_SOLO_5x5":
+                        return record
             return None
 
         def getSummonerCurrentSeasonInfo(self, name):
@@ -110,6 +112,24 @@ def _riotApiManagerGenerator(riotApiKey):
                 return self.getSummonerCurrentSeasonInfoById(summonerData["id"])
             return None
 
+        def _getChampionMasteries(self, id):
+            response = requests.get(
+                RIOT_REST_API_FORMAT.format(
+                    self.riotApiRegion
+                    , URL_PATH_CHAMPION_MASTERIRES.format(id)
+                    , self.riotApiKey
+                )
+            )
+            if response.ok:
+                return response.json()[0:10]                
+            return None
+
+        def _getRecentMostChampion(self, accountId):
+            matchData = self._getCurrentMatchList(accountId, 100)
+            championUsage = defaultdict(int)
+            for match in matchData:
+                championUsage[match["champion"]] += 1
+            return sorted(championUsage.items(), key=lambda cu: cu[1], reverse=True)[0:10]
         '''
         {
             "matches": [{
@@ -124,22 +144,25 @@ def _riotApiManagerGenerator(riotApiKey):
             }]
         }
         '''
+        def _getCurrentMatchList(self, accountId, endIndex = 10):
+            response = requests.get(
+                RIOT_REST_API_FORMAT.format(
+                    self.riotApiRegion
+                    , URL_PATH_MATCHLISTS.format(accountId)
+                    , self.riotApiKey
+                )
+                + "&beginIndex=0&endIndex={}".format(endIndex)
+            )
+            if response.ok:
+                return response.json()["matches"]
+            return []
         def getCurrentMatchList(self, name):
             summonerData = self.getSummonerDataByName(name)
             if summonerData != None:
-                response = requests.get(
-                    RIOT_REST_API_FORMAT.format(
-                        self.riotApiRegion
-                        , URL_PATH_MATCHLISTS.format(summonerData["accountId"])
-                        , self.riotApiKey
-                    )
-                    + "&beginIndex=0&endIndex=10"
-                )
-                if response.ok:
-                    return response.json()["matches"]
+                return self._getCurrentMatchList(summonerData["accountId"])
             return []
         
-        def getMatchData(self, matchId):
+        def _getMatchData(self, matchId):
             response = requests.get(
                 RIOT_REST_API_FORMAT.format(
                     self.riotApiRegion
