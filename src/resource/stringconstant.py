@@ -4,7 +4,10 @@ PATH_KEY_JSON_FILE='./key.json'
 # global
 URL_PATH_CHAMPION_ROTATION='/lol/platform/v3/champion-rotations'
 URL_PATH_SUMMONERS_BY_NAME='/lol/summoner/v4/summoners/by-name/{}' # param: summonerName
-URL_PATH_SUMMONER_CURRENT_SEASON_INFO = '/lol/league/v4/entries/by-summoner/{}'
+URL_PATH_SUMMONER_CURRENT_SEASON_INFO = '/lol/league/v4/entries/by-summoner/{}' # param: encryptedSummonerId
+
+URL_PATH_MATCHLISTS = '/lol/match/v4/matchlists/by-account/{}' # param: encryptedAccountId
+URL_PATH_MATCHDATA = '/lol/match/v4/matches/{}' #param: matchId(gameId)
 '''
 /riot/account/v1/accounts/by-puuid/{puuid}
 /riot/account/v1/accounts/by-riot-id/{gameName}/{tagLine}
@@ -42,8 +45,8 @@ URL_PATH_SUMMONER_CURRENT_SEASON_INFO = '/lol/league/v4/entries/by-summoner/{}'
 
 /lor/status/v1/platform-data
 
-/lol/match/v4/matches/{matchId}
-/lol/match/v4/matchlists/by-account/{encryptedAccountId}
+[DONE] /lol/match/v4/matches/{matchId}
+[DONE] /lol/match/v4/matchlists/by-account/{encryptedAccountId}
 /lol/match/v4/timelines/by-match/{matchId}
 /lol/match/v4/matches/by-tournament-code/{tournamentCode}/ids
 /lol/match/v4/matches/{matchId}/by-tournament-code/{tournamentCode}

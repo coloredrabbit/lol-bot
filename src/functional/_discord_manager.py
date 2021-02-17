@@ -109,15 +109,70 @@ async def exit(ctx):
 async def tier(ctx, *, text): # TODO: 인자 하나만 받기
     summonerData = riotApiManager.getSummonerDataByName(text)
     if summonerData == None:
-        await ctx.send('No summoner exists: {}', text) #TODO: string resource
+        await ctx.send('No summoner exists: {}'.format(text)) #TODO: string resource
     else:
         seasonData = riotApiManager.getSummonerCurrentSeasonInfo(text)
         message = ''
         if seasonData:
-            message = '{} {} : {} win(s) / {} loss(es) - {} pt'.format(seasonData["tier"], seasonData["rank"], seasonData["wins"], seasonData["losses"], seasonData["leaguePoints"])
+            message = '{} {} : {} win(s) / {} loss(es) - {} pt'.format(
+                    seasonData["tier"]
+                    , seasonData["rank"]
+                    , seasonData["wins"]
+                    , seasonData["losses"]
+                    , seasonData["leaguePoints"]
+                )
         else:
             message = 'Unrank' #TODO: string resource
         await ctx.send(_createDiscordMessage(message))
+
+@app.command(aliases=['전적'])
+async def record(ctx, *, text): # TODO: 인자 하나만 받기
+    summonerData = riotApiManager.getSummonerDataByName(text)
+    if summonerData == None:
+        await ctx.send('No summoner exists: {}'.format(text)) #TODO: string resource
+    else:
+        recentMatchList = riotApiManager.getCurrentMatchList(text)
+        message = ''
+        if recentMatchList:
+            for match in recentMatchList:
+                matchData = riotApiManager.getMatchData(match["gameId"])
+                statKills = 0
+                statDeaths = 0
+                statAssists = 0
+                statKda = 0
+                statChampionLevel = 0
+
+                inTheMatchTargetParticipantId = -1
+                for participantIdentity in matchData["participantIdentities"]:
+                    if participantIdentity["player"]["summonerName"] == summonerData["name"]:
+                        inTheMatchTargetParticipantId = participantIdentity["participantId"]
+                        break
+
+                for participantMatchData in matchData["participants"]:
+                    if participantMatchData["participantId"] == inTheMatchTargetParticipantId:
+                        statKills = participantMatchData["stats"]["kills"]
+                        statDeaths = participantMatchData["stats"]["deaths"]
+                        statAssists = participantMatchData["stats"]["assists"]                        
+                        statChampionLevel = participantMatchData["stats"]["champLevel"]
+
+                        if statDeaths == 0:
+                            statKda = 'Perfect'
+                        else:
+                            statKda = (statKills + statAssists) / statDeaths
+                        break
+                message += "Lane: {}, Champion: {} {}, {}/{}/{} {}\r\n".format(
+                        match["lane"]
+                        , riotApiManager._championKey2Name[match["champion"]]
+                        , statChampionLevel                        
+                        , statKills
+                        , statDeaths
+                        , statAssists
+                        , statKda
+                    )
+        else:
+            message = 'No match is recorded' #TODO: string resource
+        await ctx.send(_createDiscordMessage(message))
+
 
 #TODO 김다인: random
 @app.command(name='랜덤')

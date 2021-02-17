@@ -110,6 +110,47 @@ def _riotApiManagerGenerator(riotApiKey):
                 return self.getSummonerCurrentSeasonInfoById(summonerData["id"])
             return None
 
+        '''
+        {
+            "matches": [{
+                "platformId": "KR",
+                "gameId": 5002258680,
+                "champion": 13,
+                "queue": 420,
+                "season": 13,
+                "timestamp": 1613282526305,
+                "role": "SOLO",
+                "lane": "MID"
+            }]
+        }
+        '''
+        def getCurrentMatchList(self, name):
+            summonerData = self.getSummonerDataByName(name)
+            if summonerData != None:
+                response = requests.get(
+                    RIOT_REST_API_FORMAT.format(
+                        self.riotApiRegion
+                        , URL_PATH_MATCHLISTS.format(summonerData["accountId"])
+                        , self.riotApiKey
+                    )
+                    + "&beginIndex=0&endIndex=10"
+                )
+                if response.ok:
+                    return response.json()["matches"]
+            return []
+        
+        def getMatchData(self, matchId):
+            response = requests.get(
+                RIOT_REST_API_FORMAT.format(
+                    self.riotApiRegion
+                    , URL_PATH_MATCHDATA.format(matchId)
+                    , self.riotApiKey
+                )
+            )
+            if response.ok:
+                return response.json()
+            else:
+                return None
         # result : Json text
         # on success payload like this
         # {
