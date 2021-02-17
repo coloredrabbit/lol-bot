@@ -217,8 +217,11 @@ async def mix_random(ctx, *, text):
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
 
     else :
+        randomParticipants = [] 
 
-        randomParticipants = list(participants)
+        # 딕서너리 데이터 형식을 리스트로 변환
+        for k, v in participant.items():
+            randomParticipants.append(k)
         number_of_people = len(randomParticipants)
         number_of_teams = int(number_of_people / 5) # 팀 개수
 
