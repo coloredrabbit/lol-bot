@@ -126,10 +126,17 @@ def _riotApiManagerGenerator(riotApiKey):
 
         def _getRecentMostChampion(self, accountId):
             matchData = self._getCurrentMatchList(accountId, 100)
-            championUsage = defaultdict(int)
+            laneCounter = defaultdict(int)
+            championCounter = defaultdict(int)
             for match in matchData:
-                championUsage[match["champion"]] += 1
-            return sorted(championUsage.items(), key=lambda cu: cu[1], reverse=True)[0:10]
+                championCounter[match["champion"]] += 1
+
+                if match["lane"] != 'NONE':
+                    if match["lane"] == 'BOTTOM':
+                        laneCounter[match["role"]] += 1
+                    else:
+                        laneCounter[match["lane"]] += 1
+            return sorted(championCounter.items(), key=lambda cc: cc[1], reverse=True)[0:10], sorted(laneCounter.items(), key=lambda lc: lc[1], reverse=True)[0:10]
         '''
         {
             "matches": [{

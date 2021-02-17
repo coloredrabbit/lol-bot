@@ -77,6 +77,11 @@ def _getParticipantsAsString():
         , value= '\r\n'.join([riotApiManager._championKey2Name[participants[name]["recentMostChampion"][0][0]] for name in participants])
         , inline = True
     )
+    embed.add_field(
+        name = 'Recent most lane'
+        , value= '\r\n'.join([participants[name]["recentMostLane"][0][0] for name in participants])
+        , inline = True
+    )
 
     # embed.set_footer(text=ctx.author.name, icon_url = ctx.author.avatar_url)
 
@@ -93,25 +98,28 @@ async def add(ctx, *, text):
     invalidSummonerNames = []
     for participant in text.split(','):
         participant = participant.strip()
-        summonerData = riotApiManager.getSummonerDataByName(participant)
-        if summonerData == None:
-            invalidSummonerNames.append(participant)
-        else:
-            seasonData = riotApiManager.getSummonerCurrentSeasonInfoById(summonerData["id"])
-            print(seasonData) # !debug
-            if seasonData != None:
-                summonerData["tier"] = seasonData["tier"]
-                summonerData["rank"] = seasonData["rank"]
-                summonerData["wins"] = seasonData["wins"]
-                summonerData["losses"] = seasonData["losses"]
+        if not participant in participants:
+            summonerData = riotApiManager.getSummonerDataByName(participant)
+            if summonerData == None:
+                invalidSummonerNames.append(participant)
+            else:
+                seasonData = riotApiManager.getSummonerCurrentSeasonInfoById(summonerData["id"])
+                print(seasonData) # !debug
+                if seasonData != None:
+                    summonerData["tier"] = seasonData["tier"]
+                    summonerData["rank"] = seasonData["rank"]
+                    summonerData["wins"] = seasonData["wins"]
+                    summonerData["losses"] = seasonData["losses"]
 
-            summonerData["championMasteries"] = riotApiManager._getChampionMasteries(summonerData["id"])
-            summonerData["recentMostChampion"] = riotApiManager._getRecentMostChampion(summonerData["accountId"])
-            
-            print(summonerData["championMasteries"]) # !debug
-            print(summonerData["recentMostChampion"]) # !debug
+                summonerData["championMasteries"] = riotApiManager._getChampionMasteries(summonerData["id"])
+                summonerData["recentMostChampion"], summonerData["recentMostLane"] = riotApiManager._getRecentMostChampion(summonerData["accountId"])
+                
+                print(summonerData["championMasteries"]) # !debug
+                print(summonerData["recentMostChampion"]) # !debug
+                print(summonerData["recentMostLane"]) # !debug
 
-            participants[participant] = summonerData
+                participants[participant] = summonerData
+
     if invalidSummonerNames:
         await ctx.send(_createDiscordMessage('Invalid sommoners: \r\n{}'.format('\r\n'.join(invalidSummonerNames))))
     await show(ctx)
