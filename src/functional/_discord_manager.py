@@ -209,7 +209,19 @@ async def record(ctx, *, text): # TODO: 인자 하나만 받기
             message = 'No match is recorded' #TODO: string resource
         await ctx.send(_createDiscordMessage(message))
 
+def recommanedBan(redTeam, blueTeam):
+    # if not participants:
+    #     await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
+    #     pass
+    
+    # # TODO check validation running ban algorithm
+    # if False:
+    #     await ctx.send('인원수 부족 또는 다른 유효성 검사')
+    #     pass
+    
 
+    return [], []
+    
 #TODO 김다인: random
 @app.command(name='랜덤')
 async def mix_random(ctx, *, text):
