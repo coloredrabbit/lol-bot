@@ -14,4 +14,4 @@ keyManager = json.load(open('./key.json', 'r'))
 
 riotApiManager = createRiotApiManager(keyManager["riotApiKey"])
 discordBotRun(riotApiManager, keyManager["discordBotToken"])
-#discordBotRun(createRiotApiManager(keyManager["riotApiKey"]), keyManager["discordBotToken"])
+# discordBotRun(createRiotApiManager(keyManager["riotApiKey"]), keyManager["discordBotToken"])

@@ -5,6 +5,7 @@ from discord.ext import commands
 #다인
 import random
 import sys
+from itertools import combinations
 
 from resource.stringconstant import *
 
@@ -213,6 +214,7 @@ async def record(ctx, *, text): # TODO: 인자 하나만 받기
 #TODO 김다인: random
 @app.command(name='랜덤')
 async def mix_random(ctx, *, text):
+    print(participants) # !debug
     if not participants:
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
 
@@ -220,21 +222,45 @@ async def mix_random(ctx, *, text):
         randomParticipants = [] 
 
         # 딕서너리 데이터 형식을 리스트로 변환
-        for k, v in participant.items():
-            randomParticipants.append(k)
+        randomParticipants = list(participants.keys())
+
         number_of_people = len(randomParticipants)
         number_of_teams = int(number_of_people / 5) # 팀 개수
 
         random.shuffle(randomParticipants) # 팀 랜덤으로 섞기
         number_of_rest = int(number_of_people % 5) # 팀 나누고 나머지 인원
-        team_group = [] # 랜덤 팀
+        team_group_random = [] # 랜덤 팀
 
         for i in range(0,number_of_teams):
-            team_group.append(randomParticipants[0:5])
+            team_group_random.append(randomParticipants[0:5])
             del randomParticipants[0:5]
         
         # 팀이 나누어 떨어지지 않을 때
         if number_of_rest != 0:
-            team_group.append(randomParticipants[0:number_of_rest])
+            team_group_random.append(randomParticipants[0:number_of_rest])
 
-        await ctx.send(team_group)
+        await ctx.send(team_group_random)
+
+
+#TODO 김다인: balance
+@app.command(name='밸런스')
+async def mix_balance(ctx, *, text):
+
+    if not participants:
+        await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
+
+    else :
+        # 딕서너리 데이터 형식을 리스트로 변환
+        randomParticipants = list(participants.keys())
+
+
+        team_group_balance = {} # 밸런스 팀 및 점수
+        index = 0
+        # for team in combinations(randomParticipants, 5):
+        for team in combinations(participants,2):
+            print(team)
+            # key = 'team' + str(index)
+            # avg_score = 
+            # team_group_balance[key] = team
+        # print(team_group_balance)
+        await ctx.send('밸런스')
