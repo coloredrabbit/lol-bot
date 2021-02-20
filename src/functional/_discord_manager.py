@@ -223,78 +223,161 @@ def recommanedBan(redTeam, blueTeam):
 
     return [], []
 
+output_random_index = 0
+team_group_random = {}
+num_per_team = 5
 #TODO 김다인: random
 @app.command(name='랜덤')
 async def mix_random(ctx, *, text):
-    print(participants) # !debug
+
+    num_of_participants = int(len(list(participants.keys())))
+
     if not participants:
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
-
+    elif num_of_participants != 10:
+        await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
     else :
+        global output_random_index
+        global team_group_random
+        global num_per_team
+
         randomParticipants = [] 
 
         # 딕서너리 데이터 형식을 리스트로 변환
         randomParticipants = list(participants.keys())
 
         number_of_people = len(randomParticipants)
-        number_of_teams = int(number_of_people / 5) # 팀 개수
+        number_of_teams = int(number_of_people / num_per_team) # 팀 개수
 
         random.shuffle(randomParticipants) # 팀 랜덤으로 섞기
-        number_of_rest = int(number_of_people % 5) # 팀 나누고 나머지 인원
-        team_group_random = [] # 랜덤 팀
+        number_of_rest = int(number_of_people % num_per_team) # 팀 나누고 나머지 인원
+        
+        team_group_random = {}
 
-        for i in range(0,number_of_teams):
-            team_group_random.append(randomParticipants[0:5])
-            del randomParticipants[0:5]
+        # for red in range(0,number_of_teams):
+        team_group_random['red_team'] = randomParticipants[0:num_per_team]
+        del randomParticipants[0:num_per_team]
+        team_group_random['blue_team'] = randomParticipants[0:num_per_team]
         
         # 팀이 나누어 떨어지지 않을 때
-        if number_of_rest != 0:
-            team_group_random.append(randomParticipants[0:number_of_rest])
+        # if number_of_rest != 0:
+        #     team_group_random['blue_team'] = randomParticipants[0:number_of_rest]
 
-        await ctx.send(team_group_random)
+        output_random_index += 1
 
+        await ctx.send(embed=_getRandomAsString())
+
+
+def _getRandomAsString():
+
+    embed = discord.Embed(title='랜덤 '+str(output_random_index)+"번째")
+    embed.add_field(
+        name = '레드팀'
+        , value= '\r\n'.join([name for name in team_group_random['red_team']])
+        , inline = True
+    )
+    
+    embed.add_field(
+        name = '블루팀'
+        , value= '\r\n'.join([name for name in team_group_random['blue_team']])
+        , inline = True
+    )
+
+    return embed
+
+
+output_balance_index = 0
+balance_result = []
 
 #TODO 김다인: balance
 @app.command(name='밸런스')
 async def mix_balance(ctx, *, text):
-    print(participants['두리쥬와두리']['profileIconId'])
+    global output_balance_index
+    global balance_result
+    global num_per_team
 
+    num_of_participants = int(len(list(participants.keys())))
 
     if not participants:
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
-
+    elif num_of_participants != 10:
+        await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
     else :
         # 필요한 정보만 담긴 딕셔너리로 변환
         balanceParticipants = {}
         for k, v in participants.items():
-            balanceParticipants[k] = v['profileIconId']
+            balanceParticipants[k] = v['profileIconId'] # TODO 점수
 
-        team_group_balance = {} # 밸런스 팀 및 점수
         index = 0
-        team_combinations = []
+        team_combinations = [] # 팀 조합으로 소환사명만 들어있는 list
 
-        for team in combinations(balanceParticipants,5):
+        # 팀 조합 (Combination)
+        for team in combinations(balanceParticipants,num_per_team):
             team_combinations.append(team) 
-            # team = dict(team)
-            # avg_score = 0
-            # team_group_key = 'team' + str(index)
-            # team_group_balance[team_group_key]['group'] = team.keys()
-            # for k,v in team.items() :
-            #     avg_score += v
-            # avg_score /= 5
-            # team_group_balance[team_group_key]['score'] = avg_score
-            # index += 1
 
-        # print(team_group_balance)
-        # for i in team_combinations:
-        #     for j in i:
-        #         print(j)
-        #     print("\n")
-        
+        # 팀 블루, 레드로 매칭
         length = len(team_combinations)
         num = int(length/2)
+        team_red_all = [] # 레드팀 목록
+        team_blue_all = [] # 블루팀 목록
+        for x in range(0,num):
+            team_red_all.append(team_combinations[x])
+            team_blue_all.append(team_combinations[length-1-x])
+
+        team_group_balance = [] # 밸런스 팀 및 점수
         for i in range(0,num):
-            print(team_combinations[i])
-            print(team_combinations[length-1-i])
-            print('\n')
-        await ctx.send('밸런스')
+            team_group_element = {}
+            team_group_element['red_team'] = team_red_all[i] # 팀 레드
+            team_group_element['blue_team'] = team_blue_all[i] # 팀 블루
+
+            # 점수 차이 계산
+            # 레드팀 점수
+            red_score = 0
+            red_score_avg = 1
+            for person_red in team_red_all[i]:
+                red_score += balanceParticipants[person_red]
+            red_score_avg = red_score / len(team_red_all[i])
+
+            # 블루팀 점수
+            blue_score = 0
+            blue_score_avg = 1
+            for person_blue in team_blue_all[i]:
+                blue_score += balanceParticipants[person_blue]
+            blue_score_avg = blue_score / len(team_blue_all[i])
+
+            avg_score = red_score_avg - blue_score_avg # 점수 차이
+            if avg_score < 0:
+                avg_score *= -1
+
+            team_group_element['diff'] = avg_score
+
+            team_group_balance.append(team_group_element)
+
+        balance_result = sorted(team_group_balance, key = lambda team_group_balance : team_group_balance['diff'])
+
+        if output_balance_index >= len(balance_result):
+            output_balance_index = 0
+
+        await ctx.send(embed=_getBalanceAsString())
+
+    
+def _getBalanceAsString():
+    global output_balance_index
+    global balance_result
+
+    embed = discord.Embed(title='밸런스 '+str(output_balance_index+1)+"번째")
+    embed.add_field(
+        name = '레드팀'
+        , value= '\r\n'.join([name for name in balance_result[output_balance_index]['red_team']])
+        , inline = True
+    )
+    
+    embed.add_field(
+        name = '블루팀'
+        , value= '\r\n'.join([name for name in balance_result[output_balance_index]['blue_team']])
+        , inline = True
+    )
+
+    output_balance_index += 1
+
+    return embed
