@@ -18,7 +18,8 @@ Followed Google Python Style. See https://google.github.io/styleguide/pyguide.ht
 If you want run dc.gg on your machine, please follow some instructions
   1. Install discord lib (pip install discord)
   2. Install requests lib (pip install requests)
-  3. Create key.json file in root of the project as following
+  3. Install combination lib (pip install combination)
+  4. Create key.json file in root of the project as following
     {
         "discordBotToken": "",
         "riotApiKey": "",
@@ -27,6 +28,7 @@ If you want run dc.gg on your machine, please follow some instructions
 # Used additional libraries
 discord
 requests
+combination
 
 # Links
 Trello https://trello.com/b/Soq6pOOZ/dcgg

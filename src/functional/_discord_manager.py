@@ -210,6 +210,23 @@ async def record(ctx, *, text): # TODO: 인자 하나만 받기
             message = 'No match is recorded' #TODO: string resource
         await ctx.send(_createDiscordMessage(message))
 
+'''
+Each lane, ban pick supplied upto 5 picks
+
+[INPUT]
+redTeam = ['participant1Name', 'participant2Name', ...]
+blueTeam = ['participant1Name', 'participant2Name', ...]
+
+[OUTPUT]
+banPickForRedTeam = [
+    {
+        "participantName": "",
+        "championId": 0,
+        "mastery": 0
+    }
+]
+banPickForBlueTeam = [...]
+'''
 def recommanedBan(redTeam, blueTeam):
     # if not participants:
     #     await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
@@ -219,9 +236,68 @@ def recommanedBan(redTeam, blueTeam):
     # if False:
     #     await ctx.send('인원수 부족 또는 다른 유효성 검사')
     #     pass
-    
 
-    return [], []
+    if redTeam.count != 5 or blueTeam.count != 5:
+        # TODO: error
+        pass
+
+    teams = [redTeam, blueTeam]
+    orderByMastery = [[], []]
+    orderByMostRecentChampion = [[], []]
+    for index, item in enumerate(orderByMastery):
+        for participantName in teams[(index+1)%2]:
+            for masteryData in participants[participantName]["championMasteries"]:
+                orderByMastery[index].append((
+                    riotApiManager._championKey2Name[masteryData["championId"]]
+                    , participantName
+                    , masteryData["championLevel"]
+                    , masteryData["championPoints"]
+                ))
+
+            for recentMostChampion in participants[participantName]["recentMostChampion"]:
+                orderByMostRecentChampion[index].append((riotApiManager._championKey2Name[recentMostChampion[0]], participantName, recentMostChampion[1]))
+
+        orderByMastery[index] = sorted(orderByMastery[index], key=lambda x: x[2], reverse=True)
+        orderByMostRecentChampion[index] = sorted(orderByMostRecentChampion[index], key=lambda x: x[2], reverse=True)
+
+        # Slice. Too many items may exist
+        orderByMastery[index] = orderByMastery[index][0:12]
+        orderByMostRecentChampion[index] = orderByMostRecentChampion[index][0:12]
+
+    return orderByMastery, orderByMostRecentChampion
+
+@app.command(name='밴픽')
+async def testBan(ctx):    
+    orderByMastery, orderByMostRecentChampion = recommanedBan(['두리쥬와두리', '디다담디담디담', '카쥑스매니아', 'random135', '되는대로삶'], ['hyuncoo', '동네총각', 'Dopa PAKA RaIo', '아니 왜 욕을 해요', 'AeongAeong1'])
+
+    teamName = ['red' , 'blue']
+    tableMasteryHead = ['Champion', 'Participant', 'Level', 'Points']
+    tableMostRecentChampionHead = ['Champion', 'Participant', 'Frequency']
+    for teamIndex, teamItem in enumerate(orderByMastery):
+        masteryEmbed = discord.Embed(title='Ban picks for {} team order by mastery'.format(teamName[teamIndex]))
+        
+        for index, item in enumerate(tableMasteryHead):
+            masteryEmbed.add_field(
+                name = tableMasteryHead[index]
+                , value= '\r\n'.join([str(banPickTuple[index]) for banPickTuple in orderByMastery[teamIndex]])
+                , inline = True
+            )
+        await ctx.send(embed=masteryEmbed)
+
+        recentMostChampionEmbed = discord.Embed(title='Ban picks for {} team order by recent most champion'.format(teamName[teamIndex]))
+        for index, item in enumerate(tableMostRecentChampionHead):
+            recentMostChampionEmbed.add_field(
+                name = tableMostRecentChampionHead[index]
+                , value= '\r\n'.join([str(banPickTuple[index]) for banPickTuple in orderByMostRecentChampion[teamIndex]])
+                , inline = True
+            )
+        await ctx.send(embed=recentMostChampionEmbed)
+
+
+    
+'''
+!참가 두리쥬와두리, 디다담디담디담, 카쥑스매니아, random135, 되는대로삶, hyuncoo, 동네총각, Dopa PAKA RaIo, 아니 왜 욕을 해요, AeongAeong1
+'''
 
 output_random_index = 0
 team_group_random = {}
