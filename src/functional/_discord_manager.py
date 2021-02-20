@@ -222,7 +222,7 @@ def recommanedBan(redTeam, blueTeam):
     
 
     return [], []
-    
+
 #TODO 김다인: random
 @app.command(name='랜덤')
 async def mix_random(ctx, *, text):
@@ -257,22 +257,44 @@ async def mix_random(ctx, *, text):
 #TODO 김다인: balance
 @app.command(name='밸런스')
 async def mix_balance(ctx, *, text):
+    print(participants['두리쥬와두리']['profileIconId'])
+
 
     if not participants:
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
 
     else :
-        # 딕서너리 데이터 형식을 리스트로 변환
-        randomParticipants = list(participants.keys())
-
+        # 필요한 정보만 담긴 딕셔너리로 변환
+        balanceParticipants = {}
+        for k, v in participants.items():
+            balanceParticipants[k] = v['profileIconId']
 
         team_group_balance = {} # 밸런스 팀 및 점수
         index = 0
-        # for team in combinations(randomParticipants, 5):
-        for team in combinations(participants,2):
-            print(team)
-            # key = 'team' + str(index)
-            # avg_score = 
-            # team_group_balance[key] = team
+        team_combinations = []
+
+        for team in combinations(balanceParticipants,5):
+            team_combinations.append(team) 
+            # team = dict(team)
+            # avg_score = 0
+            # team_group_key = 'team' + str(index)
+            # team_group_balance[team_group_key]['group'] = team.keys()
+            # for k,v in team.items() :
+            #     avg_score += v
+            # avg_score /= 5
+            # team_group_balance[team_group_key]['score'] = avg_score
+            # index += 1
+
         # print(team_group_balance)
+        # for i in team_combinations:
+        #     for j in i:
+        #         print(j)
+        #     print("\n")
+        
+        length = len(team_combinations)
+        num = int(length/2)
+        for i in range(0,num):
+            print(team_combinations[i])
+            print(team_combinations[length-1-i])
+            print('\n')
         await ctx.send('밸런스')
