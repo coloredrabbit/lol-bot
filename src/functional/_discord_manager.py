@@ -5,6 +5,7 @@ from discord.ext import commands
 #다인
 import random
 import sys
+from itertools import combinations
 
 from resource.stringconstant import *
 
@@ -238,6 +239,23 @@ async def record(ctx, *, text): # TODO: 인자 하나만 받기
             message = 'No match is recorded' #TODO: string resource
         await ctx.send(_createDiscordMessage(message))
 
+'''
+Each lane, ban pick supplied upto 5 picks
+
+[INPUT]
+redTeam = ['participant1Name', 'participant2Name', ...]
+blueTeam = ['participant1Name', 'participant2Name', ...]
+
+[OUTPUT]
+banPickForRedTeam = [
+    {
+        "participantName": "",
+        "championId": 0,
+        "mastery": 0
+    }
+]
+banPickForBlueTeam = [...]
+'''
 def recommanedBan(redTeam, blueTeam):
     # if not participants:
     #     await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
@@ -247,35 +265,224 @@ def recommanedBan(redTeam, blueTeam):
     # if False:
     #     await ctx.send('인원수 부족 또는 다른 유효성 검사')
     #     pass
+
+    if redTeam.count != 5 or blueTeam.count != 5:
+        # TODO: error
+        pass
+
+    teams = [redTeam, blueTeam]
+    orderByMastery = [[], []]
+    orderByMostRecentChampion = [[], []]
+    for index, item in enumerate(orderByMastery):
+        for participantName in teams[(index+1)%2]:
+            for masteryData in participants[participantName]["championMasteries"]:
+                orderByMastery[index].append((
+                    riotApiManager._championKey2Name[masteryData["championId"]]
+                    , participantName
+                    , masteryData["championLevel"]
+                    , masteryData["championPoints"]
+                ))
+
+            for recentMostChampion in participants[participantName]["recentMostChampion"]:
+                orderByMostRecentChampion[index].append((riotApiManager._championKey2Name[recentMostChampion[0]], participantName, recentMostChampion[1]))
+
+        orderByMastery[index] = sorted(orderByMastery[index], key=lambda x: x[2], reverse=True)
+        orderByMostRecentChampion[index] = sorted(orderByMostRecentChampion[index], key=lambda x: x[2], reverse=True)
+
+        # Slice. Too many items may exist
+        orderByMastery[index] = orderByMastery[index][0:12]
+        orderByMostRecentChampion[index] = orderByMostRecentChampion[index][0:12]
+
+    return orderByMastery, orderByMostRecentChampion
+
+@app.command(name='밴픽')
+async def testBan(ctx):    
+    orderByMastery, orderByMostRecentChampion = recommanedBan(['두리쥬와두리', '디다담디담디담', '카쥑스매니아', 'random135', '되는대로삶'], ['hyuncoo', '동네총각', 'Dopa PAKA RaIo', '아니 왜 욕을 해요', 'AeongAeong1'])
+
+    teamName = ['red' , 'blue']
+    tableMasteryHead = ['Champion', 'Participant', 'Level', 'Points']
+    tableMostRecentChampionHead = ['Champion', 'Participant', 'Frequency']
+    for teamIndex, teamItem in enumerate(orderByMastery):
+        masteryEmbed = discord.Embed(title='Ban picks for {} team order by mastery'.format(teamName[teamIndex]))
+        
+        for index, item in enumerate(tableMasteryHead):
+            masteryEmbed.add_field(
+                name = tableMasteryHead[index]
+                , value= '\r\n'.join([str(banPickTuple[index]) for banPickTuple in orderByMastery[teamIndex]])
+                , inline = True
+            )
+        await ctx.send(embed=masteryEmbed)
+
+        recentMostChampionEmbed = discord.Embed(title='Ban picks for {} team order by recent most champion'.format(teamName[teamIndex]))
+        for index, item in enumerate(tableMostRecentChampionHead):
+            recentMostChampionEmbed.add_field(
+                name = tableMostRecentChampionHead[index]
+                , value= '\r\n'.join([str(banPickTuple[index]) for banPickTuple in orderByMostRecentChampion[teamIndex]])
+                , inline = True
+            )
+        await ctx.send(embed=recentMostChampionEmbed)
+
+
     
+'''
+!참가 두리쥬와두리, 디다담디담디담, 카쥑스매니아, random135, 되는대로삶, hyuncoo, 동네총각, Dopa PAKA RaIo, 아니 왜 욕을 해요, AeongAeong1
+'''
 
-    return [], []
-
+output_random_index = 0
+team_group_random = {}
+num_per_team = 5
 #TODO 김다인: random
 @app.command(name='랜덤')
 async def mix_random(ctx, *, text):
+
+    num_of_participants = int(len(list(participants.keys())))
+
     if not participants:
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
-
+    elif num_of_participants != 10:
+        await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
     else :
+        global output_random_index
+        global team_group_random
+        global num_per_team
+
         randomParticipants = [] 
 
         # 딕서너리 데이터 형식을 리스트로 변환
-        for k, v in participant.items():
-            randomParticipants.append(k)
+        randomParticipants = list(participants.keys())
+
         number_of_people = len(randomParticipants)
-        number_of_teams = int(number_of_people / 5) # 팀 개수
+        number_of_teams = int(number_of_people / num_per_team) # 팀 개수
 
         random.shuffle(randomParticipants) # 팀 랜덤으로 섞기
-        number_of_rest = int(number_of_people % 5) # 팀 나누고 나머지 인원
-        team_group = [] # 랜덤 팀
+        number_of_rest = int(number_of_people % num_per_team) # 팀 나누고 나머지 인원
+        
+        team_group_random = {}
 
-        for i in range(0,number_of_teams):
-            team_group.append(randomParticipants[0:5])
-            del randomParticipants[0:5]
+        # for red in range(0,number_of_teams):
+        team_group_random['red_team'] = randomParticipants[0:num_per_team]
+        del randomParticipants[0:num_per_team]
+        team_group_random['blue_team'] = randomParticipants[0:num_per_team]
         
         # 팀이 나누어 떨어지지 않을 때
-        if number_of_rest != 0:
-            team_group.append(randomParticipants[0:number_of_rest])
+        # if number_of_rest != 0:
+        #     team_group_random['blue_team'] = randomParticipants[0:number_of_rest]
 
-        await ctx.send(team_group)
+        output_random_index += 1
+
+        await ctx.send(embed=_getRandomAsString())
+
+
+def _getRandomAsString():
+
+    embed = discord.Embed(title='랜덤 '+str(output_random_index)+"번째")
+    embed.add_field(
+        name = '레드팀'
+        , value= '\r\n'.join([name for name in team_group_random['red_team']])
+        , inline = True
+    )
+    
+    embed.add_field(
+        name = '블루팀'
+        , value= '\r\n'.join([name for name in team_group_random['blue_team']])
+        , inline = True
+    )
+
+    return embed
+
+
+output_balance_index = 0
+balance_result = []
+
+#TODO 김다인: balance
+@app.command(name='밸런스')
+async def mix_balance(ctx, *, text):
+    global output_balance_index
+    global balance_result
+    global num_per_team
+
+    num_of_participants = int(len(list(participants.keys())))
+
+    if not participants:
+        await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
+    elif num_of_participants != 10:
+        await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
+    else :
+        # 필요한 정보만 담긴 딕셔너리로 변환
+        balanceParticipants = {}
+        for k, v in participants.items():
+            balanceParticipants[k] = v['profileIconId'] # TODO 점수
+
+        index = 0
+        team_combinations = [] # 팀 조합으로 소환사명만 들어있는 list
+
+        # 팀 조합 (Combination)
+        for team in combinations(balanceParticipants,num_per_team):
+            team_combinations.append(team) 
+
+        # 팀 블루, 레드로 매칭
+        length = len(team_combinations)
+        num = int(length/2)
+        team_red_all = [] # 레드팀 목록
+        team_blue_all = [] # 블루팀 목록
+        for x in range(0,num):
+            team_red_all.append(team_combinations[x])
+            team_blue_all.append(team_combinations[length-1-x])
+
+        team_group_balance = [] # 밸런스 팀 및 점수
+        for i in range(0,num):
+            team_group_element = {}
+            team_group_element['red_team'] = team_red_all[i] # 팀 레드
+            team_group_element['blue_team'] = team_blue_all[i] # 팀 블루
+
+            # 점수 차이 계산
+            # 레드팀 점수
+            red_score = 0
+            red_score_avg = 1
+            for person_red in team_red_all[i]:
+                red_score += balanceParticipants[person_red]
+            red_score_avg = red_score / len(team_red_all[i])
+
+            # 블루팀 점수
+            blue_score = 0
+            blue_score_avg = 1
+            for person_blue in team_blue_all[i]:
+                blue_score += balanceParticipants[person_blue]
+            blue_score_avg = blue_score / len(team_blue_all[i])
+
+            avg_score = red_score_avg - blue_score_avg # 점수 차이
+            if avg_score < 0:
+                avg_score *= -1
+
+            team_group_element['diff'] = avg_score
+
+            team_group_balance.append(team_group_element)
+
+        balance_result = sorted(team_group_balance, key = lambda team_group_balance : team_group_balance['diff'])
+
+        if output_balance_index >= len(balance_result):
+            output_balance_index = 0
+
+        await ctx.send(embed=_getBalanceAsString())
+
+    
+def _getBalanceAsString():
+    global output_balance_index
+    global balance_result
+
+    embed = discord.Embed(title='밸런스 '+str(output_balance_index+1)+"번째")
+    embed.add_field(
+        name = '레드팀'
+        , value= '\r\n'.join([name for name in balance_result[output_balance_index]['red_team']])
+        , inline = True
+    )
+    
+    embed.add_field(
+        name = '블루팀'
+        , value= '\r\n'.join([name for name in balance_result[output_balance_index]['blue_team']])
+        , inline = True
+    )
+
+    output_balance_index += 1
+
+    return embed
