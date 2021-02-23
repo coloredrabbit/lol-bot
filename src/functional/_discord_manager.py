@@ -11,11 +11,16 @@ from resource.stringconstant import *
 app = commands.Bot(command_prefix='!')
 
 riotApiManager = None
+imageManager = None
 # general
-def discordBotRun(_riotApiManager, discordBotToken):
+def discordBotRun(_riotApiManager, _imageManager, discordBotToken):
     #TODO check whether if app already running
     global riotApiManager
     riotApiManager = _riotApiManager
+
+    global imageManager
+    imageManager = _imageManager
+
     app.run(discordBotToken)
 
 # message
@@ -35,13 +40,18 @@ async def echo(ctx, *, text):
 
 @app.command(aliases=['로테', '로테이션'])
 async def rot(ctx):
-    message = '\r\n'.join(riotApiManager.getChampionRotation())
-
-    await ctx.send(message)
+    embed = discord.Embed(title=MSG_SHOW_ROTATION)
+    embed.add_field(
+        name = MSG_FREE_CHAMPION
+        , value= join([riotApiManager._championKey2LocalName[freeCampionId] for freeCampionId in riotApiManager.getChampionRotation()])
+        , inline = True
+    )
+    await ctx.send(embed=embed)
 
 # [civil war]
 '''
-participants = {
+participantsInChannel {
+  {channelId}: {participants} = {
     "{summonerName}": {
         "id": "",
         "accountId": "",
@@ -52,16 +62,27 @@ participants = {
         "summonerLevel": Integer
     },
     ...
+  }
 }
 '''
-participants = {}
+participantsInChannel = {}
 
-#TODO get participants by application id
-def _getParticipants():
-    return participants
+def _getParticipants(channelId):
+    global participantsInChannel
 
-def _getParticipantsAsString():
+    if not channelId in participantsInChannel:
+        participantsInChannel[channelId] = {}
+
+    return participantsInChannel[channelId]
+
+def _setParticipants(channelId, participants):
+    participantsInChannel[channelId] = participants
+
+def _getParticipantsAsString(channelId):
+    participants = _getParticipants(channelId)
+
     embed = discord.Embed(title=MSG_CURRENT_PARTICIPANTS)
+    
     embed.add_field(
         name = 'Name'
         , value= '\r\n'.join([name for name in participants])
@@ -69,12 +90,12 @@ def _getParticipantsAsString():
     )
     embed.add_field(
         name = 'Highest mastery'
-        , value= '\r\n'.join([riotApiManager._championKey2Name[participants[name]["championMasteries"][0]['championId']] for name in participants])
+        , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["championMasteries"][0]['championId']] for name in participants])
         , inline = True
     )
     embed.add_field(
         name = 'Recent most pick'
-        , value= '\r\n'.join([riotApiManager._championKey2Name[participants[name]["recentMostChampion"][0][0]] for name in participants])
+        , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["recentMostChampion"][0][0]] for name in participants])
         , inline = True
     )
     embed.add_field(
@@ -90,11 +111,13 @@ def _getParticipantsAsString():
 # show participants
 @app.command(aliases=['s', '인원', '리스트', '참가자'])
 async def show(ctx):
-    await ctx.send(embed=_getParticipantsAsString())
+    await ctx.send(embed=_getParticipantsAsString(ctx.channel.id))
 
 # add participants
 @app.command(aliases=['a', '참가', '참여'])
 async def add(ctx, *, text):
+    participants = _getParticipants(ctx.channel.id)
+
     invalidSummonerNames = []
     for participant in text.split(','):
         participant = participant.strip()
@@ -120,6 +143,8 @@ async def add(ctx, *, text):
 
                 participants[participant] = summonerData
 
+    _setParticipants(ctx.channel.id, participants)
+
     if invalidSummonerNames:
         await ctx.send(_createDiscordMessage('Invalid sommoners: \r\n{}'.format('\r\n'.join(invalidSummonerNames))))
     await show(ctx)
@@ -127,13 +152,17 @@ async def add(ctx, *, text):
 # remove participants
 @app.command(aliases=['rm', '삭제', '제외'])
 async def rem(ctx, *, text):
+    participants = _getParticipants(ctx.channel.id)
     for participant in text.split(','):
         participants.pop(participant.strip(), None)
+    _setParticipants(ctx.channel.id, participants)
     await show(ctx)
 
 @app.command(aliases=['rs', '초기화', '리셋'])
 async def reset(ctx, *, text):
+    participants = _getParticipants(ctx.channel.id)
     participants.clear()
+    _setParticipants(ctx.channel.id, participants)
     await show(ctx)
 
 @app.command(aliases=['종료', '서버종료', '꺼져'])
@@ -198,7 +227,7 @@ async def record(ctx, *, text): # TODO: 인자 하나만 받기
                         break
                 message += "Lane: {}, Champion: {} {}, {}/{}/{} {}\r\n".format(
                         match["lane"]
-                        , riotApiManager._championKey2Name[match["champion"]]
+                        , riotApiManager._championKey2LocalName[match["champion"]]
                         , statChampionLevel                        
                         , statKills
                         , statDeaths
@@ -221,7 +250,7 @@ def recommanedBan(redTeam, blueTeam):
     
 
     return [], []
-    
+
 #TODO 김다인: random
 @app.command(name='랜덤')
 async def mix_random(ctx, *, text):

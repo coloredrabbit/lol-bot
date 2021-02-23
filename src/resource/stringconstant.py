@@ -105,6 +105,8 @@ PUT /lol/tournament/v4/codes/{tournamentCode}
 # message
 MSG_WELCOME_TO_DC_GG='welcome to dc.gg'
 MSG_CURRENT_PARTICIPANTS='Current participants'
+MSG_SHOW_ROTATION='Rotation'
+MSG_FREE_CHAMPION='Free champions'
 
 MSG_PARTICIPANTS_ADDED_SUCCESSFULLY='participants added successfully.'
 MSG_PARTICIPANTS_REMOVED_SUCCESSFULLY='participants removed successfully.'

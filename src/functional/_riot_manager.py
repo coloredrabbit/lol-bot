@@ -8,22 +8,22 @@ from collections import defaultdict
 
 from resource.stringconstant import *
 
-# 1. Region
-# 2. Riot API version
-# 3. Rest API path
-# 4. Riot API key
-RIOT_REST_API_FORMAT = "https://{}.api.riotgames.com{}?api_key={}"
-
-
-# 1. Riot LOL release version
-# 2. region
-RIOT_DDRAGON_CHAMPION_JSON = 'http://ddragon.leagueoflegends.com/cdn/{}/data/{}/champion.json'
-RIOT_DDRAGON_CHAMPION_JSON_FILE_CACHE_PATH = './src/resource/_cache/{}_{}.json'
-
-RIOT_DDRAGON_CHAMPION_SQUARE_ASSETS = 'http://ddragon.leagueoflegends.com/cdn/{}/img/champion/{}.png'
-
 #TODO
 def _riotApiManagerGenerator(riotApiKey):
+    # 1. Region
+    # 2. Riot API version
+    # 3. Rest API path
+    # 4. Riot API key
+    RIOT_REST_API_FORMAT = "https://{}.api.riotgames.com{}?api_key={}"
+
+
+    # 1. Riot LOL release version
+    # 2. region
+    RIOT_DDRAGON_CHAMPION_JSON = 'http://ddragon.leagueoflegends.com/cdn/{}/data/{}/champion.json'
+    RIOT_DDRAGON_CHAMPION_JSON_FILE_CACHE_PATH = './src/resource/_cache/{}_{}.json'
+
+    RIOT_DDRAGON_CHAMPION_SQUARE_ASSETS = 'http://ddragon.leagueoflegends.com/cdn/{}/img/champion/{}.png'
+
     class _riotApiManager:
         lolReleaseVersion = '11.3.1'
 
@@ -53,16 +53,13 @@ def _riotApiManagerGenerator(riotApiKey):
                     # championCacheJsonFile.write(u'\ufeff')
                     json.dump(self.champion, championCacheJsonFile)
 
-            # print(self.champion) # !debug
-
-            #TODO convert to dict comprehensive
-            # self._championKey2Name = {k: name, for championName in self.champion["data"] }
-            self._championKey2Name = {}
+            self._championKey2LocalName = {}
+            self._championKey2OfficialName = {}
             for championName in self.champion["data"]:
-                self._championKey2Name[int(self.champion["data"][championName]["key"])] = self.champion["data"][championName]["name"]
-                # self._championKey2Name[int(self.champion["data"][championName]["key"])] = championName
-            
-            # print(self._championKey2Name) # !debug
+                self._championKey2LocalName[int(self.champion["data"][championName]["key"])] = self.champion["data"][championName]["name"]
+                self._championKey2OfficialName[int(self.champion["data"][championName]["key"])] = championName
+
+                
 
         def changeRegion(self, riotApiRegion, ddragonApiLocale):
             #TODO validate regions
@@ -193,7 +190,7 @@ def _riotApiManagerGenerator(riotApiKey):
             response = requests.get(url)
             if response.ok:
                 result = response.json()
-                return [self._championKey2Name[freeChampionId] for freeChampionId in result["freeChampionIds"]]
+                return [freeChampionId for freeChampionId in result["freeChampionIds"]]
                 # return [RIOT_DDRAGON_CHAMPION_SQUARE_ASSETS.format(self.lolReleaseVersion, self._championKey2Name[freeChampionId]) for freeChampionId in result["freeChampionIds"]]
             else:
                 print('error')
