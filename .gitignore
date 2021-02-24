@@ -1,5 +1,6 @@
 key.json
 src/resource/_cache/*
+src/resource/_channel_data.dcgg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -7,7 +7,7 @@ from functional._discord_manager import discordBotRun
 from functional._riot_manager import createRiotApiManager
 from functional._image_manager import createImageManager
 
-IMAGE_RESOURCE_PATH = './resource/_cache/dragontail'
+IMAGE_RESOURCE_PATH = './src/resource/_cache/dragontail'
 IMAGE_RESOURCE_VERSION = '9.3.1'
 
 # keyManager = {

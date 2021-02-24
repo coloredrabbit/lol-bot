@@ -8,11 +8,14 @@ import sys
 from itertools import combinations
 
 from resource.stringconstant import *
+from functional._discord_channel_manager import getDiscordChannelManager
 
 app = commands.Bot(command_prefix='!')
+discordChannelManager = getDiscordChannelManager()
 
 riotApiManager = None
 imageManager = None
+
 # general
 def discordBotRun(_riotApiManager, _imageManager, discordBotToken):
     #TODO check whether if app already running
@@ -34,6 +37,11 @@ async def on_ready():
     await app.change_presence(status=discord.Status.online, activity=None)
     print("ready")
 
+@app.command(aliases=['정보'])
+async def info(ctx):
+    # todo
+    pass
+
 #commands
 @app.command()
 async def echo(ctx, *, text):
@@ -50,64 +58,6 @@ async def rot(ctx):
     await ctx.send(embed=embed)
 
 # [civil war]
-'''
-participantsInChannel {
-  {channelId}: {participants} = {
-    "{summonerName}": {
-        "id": "",
-        "accountId": "",
-        "puuid": "",
-        "name": "{summonerName}",
-        "profileIconId": Integer,
-        "revisionDate": Integer,
-        "summonerLevel": Integer
-    },
-    ...
-  }
-}
-'''
-participantsInChannel = {}
-
-def _getParticipants(channelId):
-    global participantsInChannel
-
-    if not channelId in participantsInChannel:
-        participantsInChannel[channelId] = {}
-
-    return participantsInChannel[channelId]
-
-def _setParticipants(channelId, participants):
-    participantsInChannel[channelId] = participants
-
-def _getParticipantsAsString(channelId):
-    participants = _getParticipants(channelId)
-
-    embed = discord.Embed(title=MSG_CURRENT_PARTICIPANTS)
-    
-    embed.add_field(
-        name = 'Name'
-        , value= '\r\n'.join([name for name in participants])
-        , inline = True
-    )
-    embed.add_field(
-        name = 'Highest mastery'
-        , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["championMasteries"][0]['championId']] for name in participants])
-        , inline = True
-    )
-    embed.add_field(
-        name = 'Recent most pick'
-        , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["recentMostChampion"][0][0]] for name in participants])
-        , inline = True
-    )
-    embed.add_field(
-        name = 'Recent most lane'
-        , value= '\r\n'.join([participants[name]["recentMostLane"][0][0] for name in participants])
-        , inline = True
-    )
-
-    # embed.set_footer(text=ctx.author.name, icon_url = ctx.author.avatar_url)
-
-    return embed
 
 # show participants
 @app.command(aliases=['s', '인원', '리스트', '참가자'])
@@ -117,7 +67,7 @@ async def show(ctx):
 # add participants
 @app.command(aliases=['a', '참가', '참여'])
 async def add(ctx, *, text):
-    participants = _getParticipants(ctx.channel.id)
+    participants = discordChannelManager.getParticipants(ctx.channel.id)
 
     invalidSummonerNames = []
     for participant in text.split(','):
@@ -128,7 +78,7 @@ async def add(ctx, *, text):
                 invalidSummonerNames.append(participant)
             else:
                 seasonData = riotApiManager.getSummonerCurrentSeasonInfoById(summonerData["id"])
-                print(seasonData) # !debug
+                # print(seasonData) # !debug
                 if seasonData != None:
                     summonerData["tier"] = seasonData["tier"]
                     summonerData["rank"] = seasonData["rank"]
@@ -138,13 +88,13 @@ async def add(ctx, *, text):
                 summonerData["championMasteries"] = riotApiManager._getChampionMasteries(summonerData["id"])
                 summonerData["recentMostChampion"], summonerData["recentMostLane"] = riotApiManager._getRecentMostChampion(summonerData["accountId"])
                 
-                print(summonerData["championMasteries"]) # !debug
-                print(summonerData["recentMostChampion"]) # !debug
-                print(summonerData["recentMostLane"]) # !debug
+                # print(summonerData["championMasteries"]) # !debug
+                # print(summonerData["recentMostChampion"]) # !debug
+                # print(summonerData["recentMostLane"]) # !debug
 
                 participants[participant] = summonerData
 
-    _setParticipants(ctx.channel.id, participants)
+    discordChannelManager.setParticipants(ctx.channel.id, participants)
 
     if invalidSummonerNames:
         await ctx.send(_createDiscordMessage('Invalid sommoners: \r\n{}'.format('\r\n'.join(invalidSummonerNames))))
@@ -153,17 +103,17 @@ async def add(ctx, *, text):
 # remove participants
 @app.command(aliases=['rm', '삭제', '제외'])
 async def rem(ctx, *, text):
-    participants = _getParticipants(ctx.channel.id)
+    participants = discordChannelManager.getParticipants(ctx.channel.id)
     for participant in text.split(','):
         participants.pop(participant.strip(), None)
-    _setParticipants(ctx.channel.id, participants)
+    discordChannelManager.setParticipants(ctx.channel.id, participants)
     await show(ctx)
 
 @app.command(aliases=['rs', '초기화', '리셋'])
 async def reset(ctx, *, text):
-    participants = _getParticipants(ctx.channel.id)
+    participants = discordChannelManager.getParticipants(ctx.channel.id)
     participants.clear()
-    _setParticipants(ctx.channel.id, participants)
+    discordChannelManager.setParticipants(ctx.channel.id, participants)
     await show(ctx)
 
 @app.command(aliases=['종료', '서버종료', '꺼져'])
@@ -322,7 +272,35 @@ async def testBan(ctx):
             )
         await ctx.send(embed=recentMostChampionEmbed)
 
+def _getParticipantsAsString(channelId):
+    participants = discordChannelManager.getParticipants(channelId)
 
+    embed = discord.Embed(title=MSG_CURRENT_PARTICIPANTS)
+    
+    embed.add_field(
+        name = 'Name'
+        , value= '\r\n'.join([name for name in participants])
+        , inline = True
+    )
+    embed.add_field(
+        name = 'Highest mastery'
+        , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["championMasteries"][0]['championId']] for name in participants])
+        , inline = True
+    )
+    embed.add_field(
+        name = 'Recent most pick'
+        , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["recentMostChampion"][0][0]] for name in participants])
+        , inline = True
+    )
+    embed.add_field(
+        name = 'Recent most lane'
+        , value= '\r\n'.join([participants[name]["recentMostLane"][0][0] for name in participants])
+        , inline = True
+    )
+
+    # embed.set_footer(text=ctx.author.name, icon_url = ctx.author.avatar_url)
+
+    return embed
     
 '''
 !참가 두리쥬와두리, 디다담디담디담, 카쥑스매니아, random135, 되는대로삶, hyuncoo, 동네총각, Dopa PAKA RaIo, 아니 왜 욕을 해요, AeongAeong1
