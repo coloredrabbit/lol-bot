@@ -334,7 +334,8 @@ num_per_team = 5
 #TODO 김다인: random
 @app.command(name='랜덤')
 async def mix_random(ctx, *, text):
-
+    participants = _getParticipants(ctx.channel.id)
+    
     num_of_participants = int(len(list(participants.keys())))
 
     if not participants:
@@ -400,6 +401,7 @@ async def mix_balance(ctx, *, text):
     global output_balance_index
     global balance_result
     global num_per_team
+    participants = _getParticipants(ctx.channel.id)
 
     num_of_participants = int(len(list(participants.keys())))
 
