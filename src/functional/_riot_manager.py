@@ -59,7 +59,7 @@ def _riotApiManagerGenerator(riotApiKey):
                 self._championKey2LocalName[int(self.champion["data"][championName]["key"])] = self.champion["data"][championName]["name"]
                 self._championKey2OfficialName[int(self.champion["data"][championName]["key"])] = championName
 
-                
+
 
         def changeRegion(self, riotApiRegion, ddragonApiLocale):
             #TODO validate regions
@@ -121,8 +121,8 @@ def _riotApiManagerGenerator(riotApiKey):
                 return response.json()[0:10]                
             return None
 
-        def _getRecentMostChampion(self, accountId):
-            matchData = self._getCurrentMatchList(accountId, 100)
+        def _getRecentMostChampion(self, accountId, ):
+            matchData = self._getCurrentMatchList(accountId, endIndex)
             laneCounter = defaultdict(int)
             championCounter = defaultdict(int)
             for match in matchData:

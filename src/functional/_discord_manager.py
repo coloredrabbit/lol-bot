@@ -39,8 +39,7 @@ async def on_ready():
 
 @app.command(aliases=['정보'])
 async def info(ctx):
-    # todo
-    pass
+    await ctx.send()
 
 #commands
 @app.command()
@@ -57,17 +56,55 @@ async def rot(ctx):
     )
     await ctx.send(embed=embed)
 
+@app.command(aliases=['tier', '티어', '그님티'])
+async def rem(ctx, *, text):
+    
+    await show(ctx)
+
 # [civil war]
 
 # show participants
 @app.command(aliases=['s', '인원', '리스트', '참가자'])
 async def show(ctx):
-    await ctx.send(embed=_getParticipantsAsString(ctx.channel.id))
+    participants = discordChannelManager.getParticipants(ctx.channel.id)
+
+    embed = discord.Embed(title=MSG_CURRENT_PARTICIPANTS)
+    
+    if participants.count == 0:
+        embed.add_field(
+            name = 'No participant exists'
+            , inline = True
+        )
+    else :
+        embed.add_field(
+            name = 'Name'
+            , value= '\r\n'.join([name for name in participants])
+            , inline = True
+        )
+        embed.add_field(
+            name = 'Highest mastery'
+            , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["championMasteries"][0]['championId']] for name in participants])
+            , inline = True
+        )
+        embed.add_field(
+            name = 'Recent most pick'
+            , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["recentMostChampion"][0][0]] for name in participants])
+            , inline = True
+        )
+        embed.add_field(
+            name = 'Recent most lane'
+            , value= '\r\n'.join([participants[name]["recentMostLane"][0][0] for name in participants])
+            , inline = True
+        )
+    await ctx.send(embed=embed)
 
 # add participants
 @app.command(aliases=['a', '참가', '참여'])
 async def add(ctx, *, text):
     participants = discordChannelManager.getParticipants(ctx.channel.id)
+    options = discordChannelManager.getOptions(ctx.channel.id)
+
+    matchEndIndex = options['_bring_match_size']
 
     invalidSummonerNames = []
     for participant in text.split(','):
@@ -78,7 +115,7 @@ async def add(ctx, *, text):
                 invalidSummonerNames.append(participant)
             else:
                 seasonData = riotApiManager.getSummonerCurrentSeasonInfoById(summonerData["id"])
-                # print(seasonData) # !debug
+
                 if seasonData != None:
                     summonerData["tier"] = seasonData["tier"]
                     summonerData["rank"] = seasonData["rank"]
@@ -86,7 +123,7 @@ async def add(ctx, *, text):
                     summonerData["losses"] = seasonData["losses"]
 
                 summonerData["championMasteries"] = riotApiManager._getChampionMasteries(summonerData["id"])
-                summonerData["recentMostChampion"], summonerData["recentMostLane"] = riotApiManager._getRecentMostChampion(summonerData["accountId"])
+                summonerData["recentMostChampion"], summonerData["recentMostLane"] = riotApiManager._getRecentMostChampion(summonerData["accountId"], matchEndIndex)
                 
                 # print(summonerData["championMasteries"]) # !debug
                 # print(summonerData["recentMostChampion"]) # !debug
@@ -111,10 +148,8 @@ async def rem(ctx, *, text):
 
 @app.command(aliases=['rs', '초기화', '리셋'])
 async def reset(ctx, *, text):
-    participants = discordChannelManager.getParticipants(ctx.channel.id)
-    participants.clear()
-    discordChannelManager.setParticipants(ctx.channel.id, participants)
-    await show(ctx)
+    discordChannelManager.clearChannelData(ctx.channel.id)
+    await show('```All remanined data in server have been removed```')
 
 @app.command(aliases=['종료', '서버종료', '꺼져'])
 async def exit(ctx):
@@ -246,8 +281,18 @@ def recommanedBan(redTeam, blueTeam):
     return orderByMastery, orderByMostRecentChampion
 
 @app.command(name='밴픽')
-async def testBan(ctx):    
-    orderByMastery, orderByMostRecentChampion = recommanedBan(['두리쥬와두리', '디다담디담디담', '카쥑스매니아', 'random135', '되는대로삶'], ['hyuncoo', '동네총각', 'Dopa PAKA RaIo', '아니 왜 욕을 해요', 'AeongAeong1'])
+async def testBan(ctx, *, text = ''):
+    if(text == ''):
+        #TODO: error please input team hash code
+        pass
+    # TODO: text = team hashcode
+    redTeam, blueTeam = discordChannelManager.getRecommandedTeam(ctx.channel.id, text)
+    # ['두리쥬와두리', '디다담디담디담', '카쥑스매니아', 'random135', '되는대로삶'], ['hyuncoo', '동네총각', 'Dopa PAKA RaIo', '아니 왜 욕을 해요', 'AeongAeong1']
+    if redTeam.count == 0 or blueTeam.count == 0:
+        # TODO: error on no hash or no exist team
+        pass
+
+    orderByMastery, orderByMostRecentChampion = recommanedBan(redTeam, blueTeam)
 
     teamName = ['red' , 'blue']
     tableMasteryHead = ['Champion', 'Participant', 'Level', 'Points']
@@ -271,36 +316,7 @@ async def testBan(ctx):
                 , inline = True
             )
         await ctx.send(embed=recentMostChampionEmbed)
-
-def _getParticipantsAsString(channelId):
-    participants = discordChannelManager.getParticipants(channelId)
-
-    embed = discord.Embed(title=MSG_CURRENT_PARTICIPANTS)
     
-    embed.add_field(
-        name = 'Name'
-        , value= '\r\n'.join([name for name in participants])
-        , inline = True
-    )
-    embed.add_field(
-        name = 'Highest mastery'
-        , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["championMasteries"][0]['championId']] for name in participants])
-        , inline = True
-    )
-    embed.add_field(
-        name = 'Recent most pick'
-        , value= '\r\n'.join([riotApiManager._championKey2LocalName[participants[name]["recentMostChampion"][0][0]] for name in participants])
-        , inline = True
-    )
-    embed.add_field(
-        name = 'Recent most lane'
-        , value= '\r\n'.join([participants[name]["recentMostLane"][0][0] for name in participants])
-        , inline = True
-    )
-
-    # embed.set_footer(text=ctx.author.name, icon_url = ctx.author.avatar_url)
-
-    return embed
     
 '''
 !참가 두리쥬와두리, 디다담디담디담, 카쥑스매니아, random135, 되는대로삶, hyuncoo, 동네총각, Dopa PAKA RaIo, 아니 왜 욕을 해요, AeongAeong1
