@@ -10,6 +10,8 @@ from itertools import combinations
 from resource.stringconstant import *
 from functional._discord_channel_manager import getDiscordChannelManager
 
+STR_AVATAR_PATH = "src/resource/icons/64x64.png"
+
 app = commands.Bot(command_prefix='!')
 discordChannelManager = getDiscordChannelManager()
 
@@ -38,15 +40,18 @@ def _createPlainDiscordMessage(title, fieldName, msg, options = None):
     return embed
 
 
-avatar_path = "src/resource/icons/64x64.png"
-
-
 @app.event
 async def on_ready():
     print(app.user.name, 'has connected to Discord!')
     await app.change_presence(status=discord.Status.online, activity=None)
-    with open(avatar_path, 'rb') as avatarFile:
-        await app.user.edit(avatar=avatarFile.read())
+    
+    try:
+        with open(STR_AVATAR_PATH, 'rb') as avatarFile:
+            await app.user.edit(avatar=avatarFile.read())
+    except discord.errors.HTTPException:
+        # Because you're trying to change avatar too fast. Try later. So ignore this error
+        pass
+
     print("ready")
 
 @app.command(aliases=['정보'])
@@ -364,7 +369,10 @@ async def testBan(ctx, *, text=''): #TODO delete = ''
                 , value= '\r\n'.join([str(banPickTuple[index]) for banPickTuple in orderByMastery[teamIndex]])
                 , inline = True
             )
-        embed.add_field(name = '\u200B' , value= '`---------------------------------------`', inline = False)
+
+        # empty horizontal line
+        embed.add_field(name = '\u200B' , value= '\u200B', inline = False)
+
         embed.add_field(
             name = 'Ban picks order by recent most champion'
             , value= '\u200B'
