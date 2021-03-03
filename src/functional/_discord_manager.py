@@ -28,8 +28,14 @@ def discordBotRun(_riotApiManager, _imageManager, discordBotToken):
     app.run(discordBotToken)
 
 # message
-def _createDiscordMessage(msg, options = None):
-    return "```{}```".format(msg)
+def _createPlainDiscordMessage(title, fieldName, msg, options = None):
+    embed = discord.Embed(title=title)
+    embed.add_field(
+        name = fieldName
+        , value= msg
+        , inline = True
+    )
+    return embed
 
 @app.event
 async def on_ready():
@@ -55,11 +61,6 @@ async def rot(ctx):
         , inline = True
     )
     await ctx.send(embed=embed)
-
-@app.command(aliases=['tier', '티어', '그님티'])
-async def rem(ctx, *, text):
-    
-    await show(ctx)
 
 # [civil war]
 
@@ -134,7 +135,7 @@ async def add(ctx, *, text):
     discordChannelManager.setParticipants(ctx.channel.id, participants)
 
     if invalidSummonerNames:
-        await ctx.send(_createDiscordMessage('Invalid sommoners: \r\n{}'.format('\r\n'.join(invalidSummonerNames))))
+        await ctx.send(embed=_createPlainDiscordMessage('Error', 'Invalid sommoners', 'Invalid sommoners: \r\n{}'.format('\r\n'.join(invalidSummonerNames))))
     await show(ctx)
 
 # remove participants
@@ -159,31 +160,47 @@ async def exit(ctx):
 @app.command(aliases=['티어'])
 async def tier(ctx, *, text): # TODO: 인자 하나만 받기
     summonerData = riotApiManager.getSummonerDataByName(text)
+
+    embed = discord.Embed(title="{}'s tier".format(text))
+    
     if summonerData == None:
-        await ctx.send('No summoner exists: {}'.format(text)) #TODO: string resource
+        embed.add_field(name = "No summoner exists", value = text, inline = True)  #TODO: string resource
     else:
-        seasonData = riotApiManager.getSummonerCurrentSeasonInfo(text)
-        message = ''
-        if seasonData:
-            message = '{} {} : {} win(s) / {} loss(es) - {} pt'.format(
-                    seasonData["tier"]
-                    , seasonData["rank"]
-                    , seasonData["wins"]
-                    , seasonData["losses"]
-                    , seasonData["leaguePoints"]
-                )
-        else:
-            message = 'Unrank' #TODO: string resource
-        await ctx.send(_createDiscordMessage(message))
+        seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo(text)
+        seasonTitles = ['Solo', 'Team']
+        for index, seasonData in enumerate(seasonDatas):
+            message = ''
+            if seasonData:
+                message = '{} {} : {} win(s) / {} loss(es) - {} pt'.format(
+                        seasonData["tier"] # TODO: image resource
+                        , seasonData["rank"]
+                        , seasonData["wins"]
+                        , seasonData["losses"]
+                        , seasonData["leaguePoints"]
+                    )
+            else:
+                continue # ignore                
+                message = 'Unrank' #TODO: string resource
+            embed.add_field(name = seasonTitles[index], value = message, inline = False)
+        
+        if seasonDatas[0] == None and seasonDatas[1] == None:
+            embed.add_field(name = "Unrank", value = "No tier exist", inline = True) #TODO: string resource
+        await ctx.send(embed=embed)
 
 @app.command(aliases=['전적'])
 async def record(ctx, *, text): # TODO: 인자 하나만 받기
     summonerData = riotApiManager.getSummonerDataByName(text)
+    embed = discord.Embed(title="Recent {}'s matches".format(text))
+    
+    # field values
+    fv_champion          = []
+    fv_kill_death_assist = []
+    fv_lane              = []
+
     if summonerData == None:
-        await ctx.send('No summoner exists: {}'.format(text)) #TODO: string resource
+        await ctx.send(embed=_createPlainDiscordMessage('Error', 'No summoner exists', text)) #TODO: string resource
     else:
         recentMatchList = riotApiManager.getCurrentMatchList(text)
-        message = ''
         if recentMatchList:
             for match in recentMatchList:
                 matchData = riotApiManager._getMatchData(match["gameId"])
@@ -207,22 +224,30 @@ async def record(ctx, *, text): # TODO: 인자 하나만 받기
                         statChampionLevel = participantMatchData["stats"]["champLevel"]
 
                         if statDeaths == 0:
-                            statKda = 'Perfect'
+                            statKda = 'P'
                         else:
-                            statKda = (statKills + statAssists) / statDeaths
+                            statKda = round((statKills + statAssists) / statDeaths, 2)
                         break
-                message += "Lane: {}, Champion: {} {}, {}/{}/{} {}\r\n".format(
-                        match["lane"]
-                        , riotApiManager._championKey2LocalName[match["champion"]]
-                        , statChampionLevel                        
-                        , statKills
-                        , statDeaths
-                        , statAssists
-                        , statKda
-                    )
+                fv_champion.append("{} (Lv. {})".format(riotApiManager._championKey2LocalName[match["champion"]], statChampionLevel))
+                fv_kill_death_assist.append("{}/{}/{} ({})".format(statKills, statDeaths, statAssists, statKda))
+                fv_lane.append(match["lane"])
+
+                # message += "<:{}:{}>  Lv.{}, {}/{}/{} {}, Lane: {}\r\n".format(
+                #         riotApiManager._championKey2LocalName[match["champion"]] #TODO: delete TODO: server emoji <:{}:{}>
+                #         , 123 #TODO: emoji id
+                #         , statChampionLevel
+                #         , statKills
+                #         , statDeaths
+                #         , statAssists
+                #         , statKda
+                #         , match["lane"]
+                #     )
+            embed.add_field(name = 'Champion', value= '\r\n'.join([v for v in fv_champion]), inline = True)
+            embed.add_field(name = 'K/D/A',    value= '\r\n'.join([v for v in fv_kill_death_assist]), inline = True)
+            embed.add_field(name = 'Lane',     value= '\r\n'.join([v for v in fv_lane]), inline = True)
         else:
-            message = 'No match is recorded' #TODO: string resource
-        await ctx.send(_createDiscordMessage(message))
+            embed.add_field(name = 'No match is recorded', value= 'N/A', inline = True)        
+        await ctx.send(embed=embed)
 
 '''
 Each lane, ban pick supplied upto 5 picks

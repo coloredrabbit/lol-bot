@@ -95,19 +95,22 @@ def _riotApiManagerGenerator(riotApiKey):
                     , self.riotApiKey
                 )
             )
+            currentSeason = [None, None]
             if response.ok:
                 seasonRecords = response.json()
                 if seasonRecords:
                     for record in seasonRecords:
-                        #if record["queueType"] == "RANKED_SOLO_5x5":
-                        return record
-            return None
+                        if record["queueType"] == "RANKED_SOLO_5x5":
+                            currentSeason[0] = record
+                        elif record["queueType"] == "RANKED_FLEX_SR":
+                            currentSeason[1] = record
+            return currentSeason
 
         def getSummonerCurrentSeasonInfo(self, name):
             summonerData = self.getSummonerDataByName(name)
             if summonerData != None:
                 return self.getSummonerCurrentSeasonInfoById(summonerData["id"])
-            return None
+            return [None, None]
 
         def _getChampionMasteries(self, id):
             response = requests.get(
