@@ -37,10 +37,16 @@ def _createPlainDiscordMessage(title, fieldName, msg, options = None):
     )
     return embed
 
+
+avatar_path = "src/resource/icons/64x64.png"
+
+
 @app.event
 async def on_ready():
     print(app.user.name, 'has connected to Discord!')
     await app.change_presence(status=discord.Status.online, activity=None)
+    with open(avatar_path, 'rb') as avatarFile:
+        await app.user.edit(avatar=avatarFile.read())
     print("ready")
 
 @app.command(aliases=['정보'])
