@@ -124,7 +124,7 @@ def _riotApiManagerGenerator(riotApiKey):
                 return response.json()[0:10]                
             return None
 
-        def _getRecentMostChampion(self, accountId, ):
+        def _getRecentMostChampion(self, accountId, endIndex):
             matchData = self._getCurrentMatchList(accountId, endIndex)
             laneCounter = defaultdict(int)
             championCounter = defaultdict(int)

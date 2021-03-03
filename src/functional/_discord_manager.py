@@ -71,7 +71,7 @@ async def show(ctx):
 
     embed = discord.Embed(title=MSG_CURRENT_PARTICIPANTS)
     
-    if participants.count == 0:
+    if len(participants) == 0:
         embed.add_field(
             name = 'No participant exists'
             , inline = True
@@ -117,11 +117,15 @@ async def add(ctx, *, text):
             else:
                 seasonData = riotApiManager.getSummonerCurrentSeasonInfoById(summonerData["id"])
 
-                if seasonData != None:
-                    summonerData["tier"] = seasonData["tier"]
-                    summonerData["rank"] = seasonData["rank"]
-                    summonerData["wins"] = seasonData["wins"]
-                    summonerData["losses"] = seasonData["losses"]
+                seasonDataAny = seasonData[0]
+                if seasonData[0] == None:
+                    seasonDataAny = seasonData[1]
+
+                if seasonDataAny != None:
+                    summonerData["tier"] = seasonDataAny["tier"]
+                    summonerData["rank"] = seasonDataAny["rank"]
+                    summonerData["wins"] = seasonDataAny["wins"]
+                    summonerData["losses"] = seasonDataAny["losses"]
 
                 summonerData["championMasteries"] = riotApiManager._getChampionMasteries(summonerData["id"])
                 summonerData["recentMostChampion"], summonerData["recentMostLane"] = riotApiManager._getRecentMostChampion(summonerData["accountId"], matchEndIndex)
@@ -246,7 +250,7 @@ async def record(ctx, *, text): # TODO: 인자 하나만 받기
             embed.add_field(name = 'K/D/A',    value= '\r\n'.join([v for v in fv_kill_death_assist]), inline = True)
             embed.add_field(name = 'Lane',     value= '\r\n'.join([v for v in fv_lane]), inline = True)
         else:
-            embed.add_field(name = 'No match is recorded', value= 'N/A', inline = True)        
+            embed.add_field(name = 'No match is recorded', value= 'N/A', inline = True)
         await ctx.send(embed=embed)
 
 '''
@@ -266,7 +270,7 @@ banPickForRedTeam = [
 ]
 banPickForBlueTeam = [...]
 '''
-def recommanedBan(redTeam, blueTeam):
+def recommanedBan(redTeam, blueTeam, participants):
     # if not participants:
     #     await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
     #     pass
@@ -285,18 +289,28 @@ def recommanedBan(redTeam, blueTeam):
     orderByMostRecentChampion = [[], []]
     for index, item in enumerate(orderByMastery):
         for participantName in teams[(index+1)%2]:
-            for masteryData in participants[participantName]["championMasteries"]:
-                orderByMastery[index].append((
-                    riotApiManager._championKey2Name[masteryData["championId"]]
-                    , participantName
-                    , masteryData["championLevel"]
-                    , masteryData["championPoints"]
-                ))
+            # If you want only one each player in the team
+            masteryData = participants[participantName]["championMasteries"][0]
+            orderByMastery[index].append((
+                riotApiManager._championKey2LocalName[masteryData["championId"]]
+                , participantName
+                , masteryData["championLevel"]
+                , masteryData["championPoints"]
+            ))
+
+            # If you want show multiple masteries
+            # for masteryData in participants[participantName]["championMasteries"]:
+            #     orderByMastery[index].append((
+            #         riotApiManager._championKey2LocalName[masteryData["championId"]]
+            #         , participantName
+            #         , masteryData["championLevel"]
+            #         , masteryData["championPoints"]
+            #     ))
 
             for recentMostChampion in participants[participantName]["recentMostChampion"]:
-                orderByMostRecentChampion[index].append((riotApiManager._championKey2Name[recentMostChampion[0]], participantName, recentMostChampion[1]))
+                orderByMostRecentChampion[index].append((riotApiManager._championKey2LocalName[recentMostChampion[0]], participantName, recentMostChampion[1]))
 
-        orderByMastery[index] = sorted(orderByMastery[index], key=lambda x: x[2], reverse=True)
+        orderByMastery[index] = sorted(orderByMastery[index], key=lambda x: int(x[2]) * 10000000 + int(x[3]), reverse=True)
         orderByMostRecentChampion[index] = sorted(orderByMostRecentChampion[index], key=lambda x: x[2], reverse=True)
 
         # Slice. Too many items may exist
@@ -305,47 +319,58 @@ def recommanedBan(redTeam, blueTeam):
 
     return orderByMastery, orderByMostRecentChampion
 
+'''
+!참가 두리쥬와두리, 디다담디담디담, 진희와 재홍이, random135, 되는대로삶, hyuncoo, 동네총각, Dopa PAKA RaIo, 아니 왜 욕을 해요, AeongAeong1
+'''
+
 @app.command(name='밴픽')
-async def testBan(ctx, *, text = ''):
-    if(text == ''):
-        #TODO: error please input team hash code
-        pass
+async def testBan(ctx, *, text=''): #TODO delete = ''
+    # if(text == ''):
+    #     #TODO: error please input team hash code
+    #     pass
+
     # TODO: text = team hashcode
-    redTeam, blueTeam = discordChannelManager.getRecommandedTeam(ctx.channel.id, text)
+    #redTeam, blueTeam = discordChannelManager.getRecommandedTeam(ctx.channel.id, text)
+    redTeam, blueTeam = ['두리쥬와두리', '디다담디담디담', '진희와 재홍이', 'random135', '되는대로삶'], ['hyuncoo', '동네총각', 'Dopa PAKA RaIo', '아니 왜 욕을 해요', 'AeongAeong1']
     # ['두리쥬와두리', '디다담디담디담', '카쥑스매니아', 'random135', '되는대로삶'], ['hyuncoo', '동네총각', 'Dopa PAKA RaIo', '아니 왜 욕을 해요', 'AeongAeong1']
     if redTeam.count == 0 or blueTeam.count == 0:
         # TODO: error on no hash or no exist team
         pass
 
-    orderByMastery, orderByMostRecentChampion = recommanedBan(redTeam, blueTeam)
+    orderByMastery, orderByMostRecentChampion = recommanedBan(redTeam, blueTeam, discordChannelManager.getParticipants(ctx.channel.id))
 
-    teamName = ['red' , 'blue']
-    tableMasteryHead = ['Champion', 'Participant', 'Level', 'Points']
+    teamName = ['RED' , 'BLUE']
+    tableMasteryHead = ['Champion', 'Participant', 'Level'] #, 'Points']
     tableMostRecentChampionHead = ['Champion', 'Participant', 'Frequency']
+    embedColor = [0xf21f18, 0x0067a3]
+
     for teamIndex, teamItem in enumerate(orderByMastery):
-        masteryEmbed = discord.Embed(title='Ban picks for {} team order by mastery'.format(teamName[teamIndex]))
+        embed = discord.Embed(title='Recommanded ban pick for {} team'.format(teamName[teamIndex]), color=embedColor[teamIndex])
+        embed.add_field(
+            name = 'Ban picks for order by mastery'
+            , value= '\u200B'
+            , inline = False
+        )
         
         for index, item in enumerate(tableMasteryHead):
-            masteryEmbed.add_field(
+            embed.add_field(
                 name = tableMasteryHead[index]
                 , value= '\r\n'.join([str(banPickTuple[index]) for banPickTuple in orderByMastery[teamIndex]])
                 , inline = True
             )
-        await ctx.send(embed=masteryEmbed)
-
-        recentMostChampionEmbed = discord.Embed(title='Ban picks for {} team order by recent most champion'.format(teamName[teamIndex]))
+        embed.add_field(name = '\u200B' , value= '`---------------------------------------`', inline = False)
+        embed.add_field(
+            name = 'Ban picks order by recent most champion'
+            , value= '\u200B'
+            , inline = False
+        )
         for index, item in enumerate(tableMostRecentChampionHead):
-            recentMostChampionEmbed.add_field(
+            embed.add_field(
                 name = tableMostRecentChampionHead[index]
-                , value= '\r\n'.join([str(banPickTuple[index]) for banPickTuple in orderByMostRecentChampion[teamIndex]])
+                , value = '\r\n'.join([str(banPickTuple[index]) for banPickTuple in orderByMostRecentChampion[teamIndex]])
                 , inline = True
             )
-        await ctx.send(embed=recentMostChampionEmbed)
-    
-    
-'''
-!참가 두리쥬와두리, 디다담디담디담, 카쥑스매니아, random135, 되는대로삶, hyuncoo, 동네총각, Dopa PAKA RaIo, 아니 왜 욕을 해요, AeongAeong1
-'''
+        await ctx.send(embed=embed)
 
 output_random_index = 0
 team_group_random = {}
