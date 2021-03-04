@@ -1,3 +1,4 @@
+@DeprecationWarning
 def _imageManagerGenerator(imageResourcePath, imageResourceVersion):
     # IMAGE_RESOURCE_PATH = './resource/_cache/dragontail'
     # IMAGE_RESOURCE_VERSION = '9.3.1'

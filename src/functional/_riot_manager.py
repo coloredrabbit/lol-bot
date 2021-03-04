@@ -15,7 +15,8 @@ def _riotApiManagerGenerator(riotApiKey):
     # 3. Rest API path
     # 4. Riot API key
     RIOT_REST_API_FORMAT = "https://{}.api.riotgames.com{}?api_key={}"
-
+    RIOT_PATCH_FILE_JSON_PATH = "https://raw.githubusercontent.com/CommunityDragon/Data/master/patches.json"
+    RIOT_DDRAGON_PATCH_JSON_FILE_CACHE_PATH = './src/resource/_cache/patches.json'
 
     # 1. Riot LOL release version
     # 2. region
@@ -26,6 +27,7 @@ def _riotApiManagerGenerator(riotApiKey):
 
     class _riotApiManager:
         lolReleaseVersion = '11.3.1'
+        appliedPatchData = {}
 
         # Riot API
         validRiotApiRegions = ['BR1', 'EUN1', 'EUW1', 'JP1', 'KR', 'LA1', 'LA2', 'NA1', 'OC1', 'TR1', 'RU']
@@ -38,11 +40,14 @@ def _riotApiManagerGenerator(riotApiKey):
 
         def __init__(self, riotApiKey):
             self.riotApiKey = riotApiKey
+            self.loadPatchData()
             self._loadChampionData()
+            print('complete to load riot data')
             
         def _loadChampionData(self):
             # load champion data
             championCacheJsonFilePath = RIOT_DDRAGON_CHAMPION_JSON_FILE_CACHE_PATH.format(self.lolReleaseVersion, self.ddragonApiLocale)
+            print('Version: {}'.format(self.lolReleaseVersion))
             if os.path.exists(championCacheJsonFilePath):
                 print('already exist riot champion data')
                 self.champion = json.load(codecs.open(championCacheJsonFilePath, 'r', "utf-8-sig"))
@@ -50,7 +55,6 @@ def _riotApiManagerGenerator(riotApiKey):
                 response = requests.get(RIOT_DDRAGON_CHAMPION_JSON.format(self.lolReleaseVersion, self.ddragonApiLocale))
                 self.champion = response.json()
                 with codecs.open(championCacheJsonFilePath, "w", "utf-8-sig") as championCacheJsonFile:
-                    # championCacheJsonFile.write(u'\ufeff')
                     json.dump(self.champion, championCacheJsonFile)
 
             self._championKey2LocalName = {}
@@ -59,7 +63,27 @@ def _riotApiManagerGenerator(riotApiKey):
                 self._championKey2LocalName[int(self.champion["data"][championName]["key"])] = self.champion["data"][championName]["name"]
                 self._championKey2OfficialName[int(self.champion["data"][championName]["key"])] = championName
 
+        def loadPatchData(self):
+            if len(self.appliedPatchData) == 0:
+                patchCacheJsonFilePath = RIOT_DDRAGON_PATCH_JSON_FILE_CACHE_PATH
+                if os.path.exists(patchCacheJsonFilePath):
+                    self.appliedPatchData = json.load(codecs.open(patchCacheJsonFilePath, 'r', "utf-8-sig"))
 
+            response = requests.get(RIOT_PATCH_FILE_JSON_PATH)
+            if response.ok:
+                patchData = response.json()
+                if len(self.appliedPatchData) == 0 or self.appliedPatchData["patches"][-1]["name"] != patchData["patches"][-1]["name"] or self.lolReleaseVersion != "{}.1".format(self.appliedPatchData["patches"][-1]["name"]):
+                    # TODO: on doing patch discord channel data may be cleared due to some champion data might differ from previos version.
+                    self.appliedPatchData = patchData
+                    self.lolReleaseVersion = "{}.1".format(self.appliedPatchData["patches"][-1]["name"])
+                    with codecs.open(patchCacheJsonFilePath, "w", "utf-8-sig") as patchCacheJsonFile:
+                        json.dump(self.appliedPatchData, patchCacheJsonFile)
+                    
+                    self._loadChampionData()
+                else:
+                    pass
+            else:
+                pass #TODO: error on getting patch data
 
         def changeRegion(self, riotApiRegion, ddragonApiLocale):
             #TODO validate regions

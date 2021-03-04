@@ -16,16 +16,12 @@ app = commands.Bot(command_prefix='!')
 discordChannelManager = getDiscordChannelManager()
 
 riotApiManager = None
-imageManager = None
 
 # general
-def discordBotRun(_riotApiManager, _imageManager, discordBotToken):
+def discordBotRun(_riotApiManager, discordBotToken):
     #TODO check whether if app already running
     global riotApiManager
     riotApiManager = _riotApiManager
-
-    global imageManager
-    imageManager = _imageManager
 
     app.run(discordBotToken)
 
