@@ -431,15 +431,18 @@ async def mix_random(ctx):
         num_of_rest_people = num_of_participants % number_of_teams # 팀 나누고 남은 인원
 
         for rest in range(0,num_of_rest_people):
-            if num_of_rest_people % 2 == 0:
+            if num_of_rest_people % 2 != 0:
                 red_team_list[rest].append(randomParticipants[rest])
-            elif num_of_rest_people % 2 != 0:
+            elif num_of_rest_people % 2 == 0:
                 blue_team_list[rest-1].append(randomParticipants[rest])
+
+        # if len(blue_team_list[len(blue_team_list)-1]) != len(red_team_list[len(red_team_list)-1]):
+        #     blue_team_list[len(blue_team_list)-1].append('김다인')
 
         team_group_random['red_team'] = red_team_list
         team_group_random['blue_team'] = blue_team_list
+    
 
-        # print(team_group_random) #!debug
         
         output_random_index += 1 
 
@@ -449,25 +452,27 @@ async def mix_random(ctx):
 def _getRandomAsString():
 
     embed = discord.Embed(title='랜덤 '+str(output_random_index)+"번째")
+    length = len(team_group_random['red_team'])
 
-    for team_red, team_blue in team_group_random['red_team'], team_group_random['blue_team'] :
+    for index in range(0,length):
         embed.add_field(
             name = '레드팀'
-            , value= '\r\n'.join([name for name in team_red])
+            , value= '\r\n'.join([name for name in team_group_random['red_team'][index]])
             , inline = True
         )
 
         embed.add_field(
             name = '블루팀'
-            , value= '\r\n'.join([name for name in team_blue])
+            , value= '\r\n'.join([name for name in team_group_random['blue_team'][index]])
             , inline = True
         )
 
-        embed.add_field(
-            name = '\u200b'
-            , value= '\u200b'
-            , inline = False
-        )
+        if length != 1 :
+            embed.add_field(
+                name = '\u200b'
+                , value= '\u200b'
+                , inline = False
+            )
 
     return embed
 
