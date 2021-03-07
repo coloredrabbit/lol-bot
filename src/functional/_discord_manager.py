@@ -382,24 +382,34 @@ async def testBan(ctx, *, text=''): #TODO delete = ''
             )
         await ctx.send(embed=embed)
 
-output_random_index = 0
-team_group_random = {}
-num_per_team = 5
+output_random_index = 0 # 랜덤 돌리기 횟수
+team_group_random = {} # 랜덤으로 빌딩된 팀
+num_per_team = 5 # 팀당 인원수
 #TODO 김다인: random
 @app.command(name='랜덤')
-async def mix_random(ctx, *, text):
-    participants = _getParticipants(ctx.channel.id)
+async def mix_random(ctx):
+    participants = discordChannelManager.getParticipants(ctx.channel.id)
     
-    num_of_participants = int(len(list(participants.keys())))
+    num_of_participants = int(len(list(participants.keys()))) # 참가자 수
 
-    if not participants:
+    global output_random_index
+    global team_group_random
+    global num_per_team
+
+    if not participants: # 참가자가 0명일 때
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
-    elif num_of_participants != 10:
-        await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
-    else :
-        global output_random_index
-        global team_group_random
-        global num_per_team
+    # elif num_of_participants != 10:
+    #     await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
+    if num_of_participants == 1 :
+        await ctx.send('랜덤 팀 빌딩 가능 최소인원은 2명입니다. 따라서, !참가 명령으로 참가할 인원을 추가해주세요.')
+    else:
+        if num_of_participants % 10 == 0 :
+            temp_ten = int(num_of_participants / 10)
+        elif num_of_participants % 10 != 0 :
+            temp_ten = int(num_of_participants / 10 + 1)
+
+        number_of_teams = int(temp_ten * 2) # 팀 개수
+        num_per_team = int(num_of_participants / number_of_teams) # 팀당 인원
 
         randomParticipants = [] 
 
@@ -407,23 +417,33 @@ async def mix_random(ctx, *, text):
         randomParticipants = list(participants.keys())
 
         number_of_people = len(randomParticipants)
-        number_of_teams = int(number_of_people / num_per_team) # 팀 개수
-
         random.shuffle(randomParticipants) # 팀 랜덤으로 섞기
-        number_of_rest = int(number_of_people % num_per_team) # 팀 나누고 나머지 인원
         
         team_group_random = {}
+        red_team_list = [] # redteam list 형태로 저장
+        blue_team_list = [] # blueteam list 형태로 저장
 
-        # for red in range(0,number_of_teams):
-        team_group_random['red_team'] = randomParticipants[0:num_per_team]
-        del randomParticipants[0:num_per_team]
-        team_group_random['blue_team'] = randomParticipants[0:num_per_team]
+        # 팀 분배
+        for a in range(0,int(number_of_teams/2)):
+            red_team_list.append(randomParticipants[0:num_per_team])
+            del randomParticipants[0:num_per_team]
+            blue_team_list.append(randomParticipants[0:num_per_team])
+            del randomParticipants[0:num_per_team]
+
+        num_of_rest_people = num_of_participants % number_of_teams # 팀 나누고 남은 인원
+
+        for rest in range(0,num_of_rest_people):
+            if num_of_rest_people % 2 == 0:
+                red_team_list[rest].append(randomParticipants[rest])
+            elif num_of_rest_people % 2 != 0:
+                blue_team_list[rest-1].append(randomParticipants[rest])
+
+        team_group_random['red_team'] = red_team_list
+        team_group_random['blue_team'] = blue_team_list
+
+        # print(team_group_random) #!debug
         
-        # 팀이 나누어 떨어지지 않을 때
-        # if number_of_rest != 0:
-        #     team_group_random['blue_team'] = randomParticipants[0:number_of_rest]
-
-        output_random_index += 1
+        output_random_index += 1 
 
         await ctx.send(embed=_getRandomAsString())
 
@@ -431,17 +451,25 @@ async def mix_random(ctx, *, text):
 def _getRandomAsString():
 
     embed = discord.Embed(title='랜덤 '+str(output_random_index)+"번째")
-    embed.add_field(
-        name = '레드팀'
-        , value= '\r\n'.join([name for name in team_group_random['red_team']])
-        , inline = True
-    )
-    
-    embed.add_field(
-        name = '블루팀'
-        , value= '\r\n'.join([name for name in team_group_random['blue_team']])
-        , inline = True
-    )
+
+    for team_red, team_blue in team_group_random['red_team'], team_group_random['blue_team'] :
+        embed.add_field(
+            name = '레드팀'
+            , value= '\r\n'.join([name for name in team_red])
+            , inline = True
+        )
+
+        embed.add_field(
+            name = '블루팀'
+            , value= '\r\n'.join([name for name in team_blue])
+            , inline = True
+        )
+
+        embed.add_field(
+            name = '\u200b'
+            , value= '\u200b'
+            , inline = False
+        )
 
     return embed
 
@@ -455,7 +483,7 @@ async def mix_balance(ctx, *, text):
     global output_balance_index
     global balance_result
     global num_per_team
-    participants = _getParticipants(ctx.channel.id)
+    participants = discordChannelManager.getParticipants(ctx.channel.id)
 
     num_of_participants = int(len(list(participants.keys())))
 
