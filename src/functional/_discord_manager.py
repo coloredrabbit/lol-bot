@@ -398,9 +398,7 @@ async def mix_random(ctx):
 
     if not participants: # 참가자가 0명일 때
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
-    # elif num_of_participants != 10:
-    #     await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
-    if num_of_participants == 1 :
+    elif num_of_participants == 1 :
         await ctx.send('랜덤 팀 빌딩 가능 최소인원은 2명입니다. 따라서, !참가 명령으로 참가할 인원을 추가해주세요.')
     else:
         if num_of_participants % 10 == 0 :
