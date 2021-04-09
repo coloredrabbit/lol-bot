@@ -12,10 +12,91 @@ from functional._discord_channel_manager import getDiscordChannelManager
 
 STR_AVATAR_PATH = "src/resource/icons/64x64.png"
 
-app = commands.Bot(command_prefix='!')
+app = commands.Bot(command_prefix='!dc')
 discordChannelManager = getDiscordChannelManager()
 
 riotApiManager = None
+
+
+BOT_CLIENT_ID = '809271171786735626'
+prefixList = ['<@{}>'.format(BOT_CLIENT_ID), '<@!{}>'.format(BOT_CLIENT_ID)]
+
+def hasPrefix(msg):
+    for pre in prefixList:
+        if msg.startswith(pre):
+            return True
+    return False
+
+aliasesList = {
+    "info": ['정보'],
+    "rot": ['로테', '로테이션'],
+    "show": ['s', '인원', '리스트', '참가자'],
+    "add": ['a', '참가', '참여'],
+    "rem": ['rm', '삭제', '제외'],
+    "reset": ['rs', '초기화', '리셋'],
+    "exit": ['종료', '서버종료', '꺼져'],
+    "tier": ['티어'],
+    "record": ['전적'],
+    "banpick": ['밴픽'],
+    "mix_random": ['랜덤'],
+    "mix_balance": ['밸런스']
+}
+
+async def executeCommand(ctx, cmd, text):
+    print(cmd)
+    print(text)
+    if cmd in aliasesList["info"]:
+        info(ctx)
+    elif cmd in aliasesList["rot"]:
+        await rot(ctx)
+    elif cmd in aliasesList["show"]:
+        await show(ctx)
+    elif cmd in aliasesList["add"]:
+        await add(ctx, text=text)
+    elif cmd in aliasesList["rem"]:
+        await rem(ctx, text=text)
+    elif cmd in aliasesList["reset"]:
+        await reset(ctx, text=text)
+    elif cmd in aliasesList["exit"]:
+        await exit(ctx)
+    elif cmd in aliasesList["tier"]:
+        await tier(ctx, text=text)
+    elif cmd in aliasesList["record"]:
+        await record(ctx, text=text)
+    elif cmd in aliasesList["banpick"]:
+        await banpick(ctx, text=text)
+    elif cmd in aliasesList["mix_random"]:
+        await mix_random(ctx)
+    elif cmd in aliasesList["mix_balance"]:
+        await mix_balance(ctx, text=text)
+    else:
+        await ctx.send('Invalid command: {}'.format(cmd))
+
+@app.event
+async def on_message(message):
+    if message.author == app.user:
+        return
+        
+    if hasPrefix(message.content):
+        # channel = message.channel
+        msgList = message.content.split(None, 2)
+        
+        if len(msgList) >= 2:
+            cmd = msgList[1]
+        else:
+            cmd = None
+
+        if len(msgList) == 3:
+            text = msgList[2]
+        else:
+            text = ''
+        ctx = await app.get_context(message)
+        
+        if cmd == None:
+            await ctx.send('Invalid command: {}'.format(cmd)) # TODO message
+        else:
+            await executeCommand(ctx, cmd, text)
+
 
 # general
 def discordBotRun(_riotApiManager, discordBotToken):
@@ -50,6 +131,7 @@ async def on_ready():
 
     print("ready")
 
+#TODO
 @app.command(aliases=['정보'])
 async def info(ctx):
     await ctx.send()
@@ -64,7 +146,7 @@ async def rot(ctx):
     embed = discord.Embed(title=MSG_SHOW_ROTATION)
     embed.add_field(
         name = MSG_FREE_CHAMPION
-        , value= join([riotApiManager._championKey2LocalName[freeCampionId] for freeCampionId in riotApiManager.getChampionRotation()])
+        , value= "\r\n".join([riotApiManager._championKey2LocalName[freeCampionId] for freeCampionId in riotApiManager.getChampionRotation()])
         , inline = True
     )
     await ctx.send(embed=embed)
@@ -107,7 +189,7 @@ async def show(ctx):
     await ctx.send(embed=embed)
 
 # add participants
-@app.command(aliases=['a', '참가', '참여'])
+@app.command(aliases=aliasesList["add"])
 async def add(ctx, *, text):
     participants = discordChannelManager.getParticipants(ctx.channel.id)
     options = discordChannelManager.getOptions(ctx.channel.id)
@@ -150,7 +232,7 @@ async def add(ctx, *, text):
     await show(ctx)
 
 # remove participants
-@app.command(aliases=['rm', '삭제', '제외'])
+@app.command(aliases=aliasesList["rem"])
 async def rem(ctx, *, text):
     participants = discordChannelManager.getParticipants(ctx.channel.id)
     for participant in text.split(','):
@@ -158,17 +240,17 @@ async def rem(ctx, *, text):
     discordChannelManager.setParticipants(ctx.channel.id, participants)
     await show(ctx)
 
-@app.command(aliases=['rs', '초기화', '리셋'])
+@app.command(aliases=aliasesList["reset"])
 async def reset(ctx, *, text):
     discordChannelManager.clearChannelData(ctx.channel.id)
     await show('```All remanined data in server have been removed```')
 
-@app.command(aliases=['종료', '서버종료', '꺼져'])
+@app.command(aliases=aliasesList["exit"])
 async def exit(ctx):
     await ctx.send('시스템을 종료합니다') #TODO string resouce
     sys.exit()
 
-@app.command(aliases=['티어'])
+@app.command(aliases=aliasesList["tier"])
 async def tier(ctx, *, text): # TODO: 인자 하나만 받기
     summonerData = riotApiManager.getSummonerDataByName(text)
 
@@ -198,7 +280,7 @@ async def tier(ctx, *, text): # TODO: 인자 하나만 받기
             embed.add_field(name = "Unrank", value = "No tier exist", inline = True) #TODO: string resource
         await ctx.send(embed=embed)
 
-@app.command(aliases=['전적'])
+@app.command(aliases=aliasesList["record"])
 async def record(ctx, *, text): # TODO: 인자 하나만 받기
     summonerData = riotApiManager.getSummonerDataByName(text)
     embed = discord.Embed(title="Recent {}'s matches".format(text))
@@ -330,8 +412,8 @@ def recommanedBan(redTeam, blueTeam, participants):
 !참가 두리쥬와두리, 디다담디담디담, 진희와 재홍이, random135, 되는대로삶, hyuncoo, 동네총각, Dopa PAKA RaIo, 아니 왜 욕을 해요, AeongAeong1
 '''
 
-@app.command(name='밴픽')
-async def testBan(ctx, *, text=''): #TODO delete = ''
+@app.command(aliases=aliasesList["banpick"])
+async def banpick(ctx, *, text=''): #TODO delete = ''
     # if(text == ''):
     #     #TODO: error please input team hash code
     #     pass
@@ -386,7 +468,7 @@ output_random_index = 0 # 랜덤 돌리기 횟수
 team_group_random = {} # 랜덤으로 빌딩된 팀
 num_per_team = 5 # 팀당 인원수
 #TODO 김다인: random
-@app.command(name='랜덤')
+@app.command(aliases=aliasesList["mix_random"])
 async def mix_random(ctx):
     participants = discordChannelManager.getParticipants(ctx.channel.id)
     
@@ -481,7 +563,7 @@ output_balance_index = 0
 balance_result = []
 
 #TODO 김다인: balance
-@app.command(name='밸런스')
+@app.command(aliases=aliasesList["mix_balance"])
 async def mix_balance(ctx, *, text):
     global output_balance_index
     global balance_result
