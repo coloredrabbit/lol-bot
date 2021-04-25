@@ -569,8 +569,37 @@ async def mix_balance(ctx, *, text):
     global balance_result
     global num_per_team
     participants = discordChannelManager.getParticipants(ctx.channel.id)
-
     num_of_participants = int(len(list(participants.keys())))
+
+    ### 작성중임
+    summonerData = riotApiManager.getSummonerDataByName(text)
+    seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo("카쥑스매니아")
+    print(seasonDatas)
+    
+    score = {}
+    score['tier'] = {
+        'IRON':1,
+        'BRONZE':2,
+        'SILVER':4,
+        'GOLD':8,
+        'PLATINUM':15,
+        'DIAMOND':30,
+        'MASTER':60,
+        'GRAND MASTER':120,
+        'CHALLENGER':250}
+    score['lane']={
+        
+    }
+    score['percentage_of_victories']={
+        
+    }
+    # if summonerData == None:
+    #     embed.add_field(name = "No summoner exists", value = text, inline = True)  #TODO: string resource
+    # else:
+    #     seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo(text)
+    #     print(seasonDatas)
+
+    ###########################
 
     if not participants:
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
