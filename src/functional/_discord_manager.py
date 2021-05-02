@@ -574,7 +574,8 @@ async def mix_balance(ctx, *, text):
     ### 작성중임
     summonerData = riotApiManager.getSummonerDataByName(text)
     # seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo("리재홍")
-    seasonDatas = [None, {
+    seasonDatas = []
+    seasonDatas.append([None, {
 	'leagueId': '8c971141-028b-4acd-bf52-83661880c866',
 	'queueType': 'RANKED_FLEX_SR',
 	'tier': 'SILVER',
@@ -587,39 +588,48 @@ async def mix_balance(ctx, *, text):
 	'veteran': False,
 	'inactive': False,
 	'freshBlood': False,
-	'hotStreak': False
-}]
-    # print(seasonDatas)
-    
-    score = {} # 롤 점수 가중치 정의
-    score['tier'] = {
-        'IRON':1,
-        'BRONZE':2,
-        'SILVER':4,
-        'GOLD':8,
-        'PLATINUM':15,
-        'DIAMOND':30,
-        'MASTER':60,
-        'GRAND MASTER':120,
-        'CHALLENGER':250}
-    score['lane']=10
-    score['percentage_of_victories']=seasonDatas[1]['wins']/(seasonDatas[1]['wins']+seasonDatas[1]['losses'])
-    score['number_of_kill']={
-        '더블킬':1,
-        '트리플킬':5,
-        '쿼드라킬':10,
-        '펜타킬':15
+	'hotStreak': False,
+    '킬': '펜타킬'
     }
+    ])
+    # 임시 데이터
+    seasonDatas.append([None, {
+	'leagueId': '8c971141-028b-4acd-bf52-83661880c866',
+	'queueType': 'RANKED_FLEX_SR',
+	'tier': 'IRON',
+	'rank': 'I',
+	'summonerId': 'dE96DANS0JUJgHhuZf25Ynf25LAkBB3jlJ2fOd0ODJaejIk',
+	'summonerName': '두리쥬와두리',
+	'leaguePoints': 50,
+	'wins': 1,
+	'losses': 7,
+	'veteran': False,
+	'inactive': False,
+	'freshBlood': False,
+	'hotStreak': False,
+    '킬': '더블킬'
+    }
+    ])
     
-    team_score = score['tier'][seasonDatas[1]['tier']] * 0.4 + score['lane'] + score['percentage_of_victories']*0.2+score['number_of_kill'][seasonDatas[1]['킬']]*seasonDatas[1]['킬']*0.2
+
+    team_score = 0
+
+    for i in seasonDatas:
+        #!debug
+        print('이야아아아아아')
+        print(i)
+        print('이야아아아아아')
+        team_score += get_score(i)
+        #+score['lane']
+
     print(team_score)
 
 
-    # if summonerData == None:
-    #     embed.add_field(name = "No summoner exists", value = text, inline = True)  #TODO: string resource
-    # else:
-    #     seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo(text)
-    #     print(seasonDatas)
+    if summonerData == None:
+        embed.add_field(name = "No summoner exists", value = text, inline = True)  #TODO: string resource
+    else:
+        seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo(text)
+        print(seasonDatas)
 
     ###########################
 
@@ -684,6 +694,32 @@ async def mix_balance(ctx, *, text):
             output_balance_index = 0
 
         await ctx.send(embed=_getBalanceAsString())
+
+def get_score(seasonDatas):
+    score = {} # 롤 점수 가중치 정의
+    score['tier'] = {
+        'IRON':1.0,
+        'BRONZE':2.0,
+        'SILVER':4.0,
+        'GOLD':8.0,
+        'PLATINUM':15.0,
+        'DIAMOND':30.0,
+        'MASTER':60,
+        'GRAND MASTER':120.0,
+        'CHALLENGER':250.0}
+    score['lane']=10.0
+    score['percentage_of_victories']=seasonDatas[1]['wins']/(seasonDatas[1]['wins']+seasonDatas[1]['losses'])
+    score['number_of_kill']={
+        '더블킬':1.0,
+        '트리플킬':5.0,
+        '쿼드라킬':10.0,
+        '펜타킬':15.0
+    }
+
+    personal_score = float(score['tier'][seasonDatas[1]['tier']]) * 0.4 + float(score['percentage_of_victories'])*0.2+float(score['number_of_kill'][seasonDatas[1]['킬']])*0.2
+
+    return personal_score
+
 
     
 def _getBalanceAsString():
