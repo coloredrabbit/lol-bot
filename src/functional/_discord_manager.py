@@ -571,68 +571,16 @@ async def mix_balance(ctx, *, text):
     participants = discordChannelManager.getParticipants(ctx.channel.id)
     num_of_participants = int(len(list(participants.keys())))
 
-    ### 작성중임
-    summonerData = riotApiManager.getSummonerDataByName(text)
-    # seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo("리재홍")
-    seasonDatas = []
-    seasonDatas.append([None, {
-	'leagueId': '8c971141-028b-4acd-bf52-83661880c866',
-	'queueType': 'RANKED_FLEX_SR',
-	'tier': 'SILVER',
-	'rank': 'I',
-	'summonerId': 'dE96DANS0JUJgHhuZf25Ynf25LAkBB3jlJ2fOd0ODJaejIk',
-	'summonerName': '카쥑스매니아',
-	'leaguePoints': 62,
-	'wins': 6,
-	'losses': 6,
-	'veteran': False,
-	'inactive': False,
-	'freshBlood': False,
-	'hotStreak': False,
-    '킬': '펜타킬'
-    }
-    ])
-    # 임시 데이터
-    seasonDatas.append([None, {
-	'leagueId': '8c971141-028b-4acd-bf52-83661880c866',
-	'queueType': 'RANKED_FLEX_SR',
-	'tier': 'IRON',
-	'rank': 'I',
-	'summonerId': 'dE96DANS0JUJgHhuZf25Ynf25LAkBB3jlJ2fOd0ODJaejIk',
-	'summonerName': '두리쥬와두리',
-	'leaguePoints': 50,
-	'wins': 1,
-	'losses': 7,
-	'veteran': False,
-	'inactive': False,
-	'freshBlood': False,
-	'hotStreak': False,
-    '킬': '더블킬'
-    }
-    ])
-    
 
-    team_score = 0
-
-    for i in seasonDatas:
-        #!debug
-        print('이야아아아아아')
-        print(i)
-        print('이야아아아아아')
-        team_score += get_score(i)
-        #+score['lane']
-
-    print(team_score)
-
-
+    # TODO 소환사 데이터 예외 처리 >>>
     if summonerData == None:
         embed.add_field(name = "No summoner exists", value = text, inline = True)  #TODO: string resource
     else:
         seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo(text)
         print(seasonDatas)
 
-    ###########################
-
+    ########################### <<<
+    
     if not participants:
         await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
     elif num_of_participants != 10:
@@ -642,6 +590,62 @@ async def mix_balance(ctx, *, text):
         balanceParticipants = {}
         for k, v in participants.items():
             balanceParticipants[k] = v['profileIconId'] # TODO 점수
+
+
+
+        # TODO 점수 >>
+        summonerData = riotApiManager.getSummonerDataByName(text)
+        # seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo("리재홍")
+        seasonDatas = []
+
+        # 임시 데이터
+        seasonDatas.append([None, {
+        'leagueId': '8c971141-028b-4acd-bf52-83661880c866',
+        'queueType': 'RANKED_FLEX_SR',
+        'tier': 'SILVER',
+        'rank': 'I',
+        'summonerId': 'dE96DANS0JUJgHhuZf25Ynf25LAkBB3jlJ2fOd0ODJaejIk',
+        'summonerName': '카쥑스매니아',
+        'leaguePoints': 62,
+        'wins': 6,
+        'losses': 6,
+        'veteran': False,
+        'inactive': False,
+        'freshBlood': False,
+        'hotStreak': False,
+        '킬': '펜타킬'
+        }
+        ])
+        
+        seasonDatas.append([None, {
+        'leagueId': '8c971141-028b-4acd-bf52-83661880c866',
+        'queueType': 'RANKED_FLEX_SR',
+        'tier': 'IRON',
+        'rank': 'I',
+        'summonerId': 'dE96DANS0JUJgHhuZf25Ynf25LAkBB3jlJ2fOd0ODJaejIk',
+        'summonerName': '두리쥬와두리',
+        'leaguePoints': 50,
+        'wins': 1,
+        'losses': 7,
+        'veteran': False,
+        'inactive': False,
+        'freshBlood': False,
+        'hotStreak': False,
+        '킬': '더블킬'
+        }
+        ])
+
+        
+
+        red_team_score = 0
+
+        for i in seasonDatas:
+            red_team_score += get_score(i)
+            #+score['lane']
+
+        print(team_score)
+
+        ###################<<
 
         index = 0
         team_combinations = [] # 팀 조합으로 소환사명만 들어있는 list
@@ -694,6 +698,15 @@ async def mix_balance(ctx, *, text):
             output_balance_index = 0
 
         await ctx.send(embed=_getBalanceAsString())
+
+
+def get_score_data(seasonDatas, participants):
+    score_data = {} # 점수 집계할 데이터만 모음
+    score_data['tier'] = seasonDatas['tier']
+    score_data['lane'] = participants['recentMostLane']
+    score_data['percentage_of_recent_victories'] seasonDatas[1]['wins']/(seasonDatas[1]['wins']+seasonDatas[1]['losses'])
+    score_data['number_of_kill'] = 0 # TODO KDA 가져올 API 필요
+
 
 def get_score(seasonDatas):
     score = {} # 롤 점수 가중치 정의
