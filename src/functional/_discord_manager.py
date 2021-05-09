@@ -586,11 +586,6 @@ async def mix_balance(ctx, *, text):
     elif num_of_participants != 10:
         await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
     else :
-        # 필요한 정보만 담긴 딕셔너리로 변환
-        balanceParticipants = {}
-        for k, v in participants.items():
-            balanceParticipants[k] = v['profileIconId'] # TODO 점수
-
 
 
         # TODO 점수 >>
@@ -635,15 +630,35 @@ async def mix_balance(ctx, *, text):
         }
         ])
 
-        
 
-        red_team_score = 0
+        # 필요한 정보만 담긴 딕셔너리로 변환
+        # 개인의 점수 담기
+        '''
+        # TODO 항목
+        1. seasonDatas 구조 확인
+        2. kda api 확인
+        '''
+
+        '''
+        personal_score = 0
+
+        for sk, pk, pv in seasonDatas, participants.items(): #pk : 소환사명
+            score_data[pk] = get_score_data(sv, pv) 
+        '''
+
+
+'''
+        balanceParticipants = {}
+
+        for k, v in participants.items():
+            balanceParticipants[k] = v['profileIconId'] # TODO 점수
+
+        personal_score = 0
 
         for i in seasonDatas:
-            red_team_score += get_score(i)
+            personal_score += get_score(i)
             #+score['lane']
-
-        print(team_score)
+'''
 
         ###################<<
 
@@ -700,12 +715,14 @@ async def mix_balance(ctx, *, text):
         await ctx.send(embed=_getBalanceAsString())
 
 
-def get_score_data(seasonDatas, participants):
+def get_score_data(seasonDatas_value, participants_value):
     score_data = {} # 점수 집계할 데이터만 모음
     score_data['tier'] = seasonDatas['tier']
     score_data['lane'] = participants['recentMostLane']
     score_data['percentage_of_recent_victories'] seasonDatas[1]['wins']/(seasonDatas[1]['wins']+seasonDatas[1]['losses'])
     score_data['number_of_kill'] = 0 # TODO KDA 가져올 API 필요
+
+    return score_data
 
 
 def get_score(seasonDatas):
