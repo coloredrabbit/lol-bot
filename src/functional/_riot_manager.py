@@ -187,10 +187,10 @@ def _riotApiManagerGenerator(riotApiKey):
             if response.ok:
                 return response.json()["matches"]
             return []
-        def getCurrentMatchList(self, name):
+        def getCurrentMatchList(self, name, matchSize):
             summonerData = self.getSummonerDataByName(name)
             if summonerData != None:
-                return self._getCurrentMatchList(summonerData["accountId"])
+                return self._getCurrentMatchList(summonerData["accountId"], matchSize)
             return []
         
         def _getMatchData(self, matchId):
