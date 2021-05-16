@@ -587,7 +587,6 @@ async def mix_balance(ctx, *, text):
         await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
     else :
 
-
         # TODO 점수 >>
         summonerData = riotApiManager.getSummonerDataByName(text)
         # seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo("리재홍")
@@ -647,7 +646,7 @@ async def mix_balance(ctx, *, text):
         '''
 
 
-'''
+        '''
         balanceParticipants = {}
 
         for k, v in participants.items():
@@ -658,10 +657,10 @@ async def mix_balance(ctx, *, text):
         for i in seasonDatas:
             personal_score += get_score(i)
             #+score['lane']
-'''
+        '''
 
         ###################<<
-
+        
         index = 0
         team_combinations = [] # 팀 조합으로 소환사명만 들어있는 list
 
@@ -717,9 +716,9 @@ async def mix_balance(ctx, *, text):
 
 def get_score_data(seasonDatas_value, participants_value):
     score_data = {} # 점수 집계할 데이터만 모음
-    score_data['tier'] = seasonDatas['tier']
-    score_data['lane'] = participants['recentMostLane']
-    score_data['percentage_of_recent_victories'] seasonDatas[1]['wins']/(seasonDatas[1]['wins']+seasonDatas[1]['losses'])
+    score_data['tier'] = seasonDatas_value['tier']
+    score_data['lane'] = participants_value['recentMostLane']
+    score_data['percentage_of_recent_victories'] = seasonDatas_value[1]['wins']/(seasonDatas_value[1]['wins']+seasonDatas_value[1]['losses'])
     score_data['number_of_kill'] = 0 # TODO KDA 가져올 API 필요
 
     return score_data
