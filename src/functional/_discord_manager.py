@@ -615,13 +615,22 @@ async def mix_balance(ctx, *, text):
     participants = discordChannelManager.getParticipants(ctx.channel.id)
     num_of_participants = int(len(list(participants.keys())))
 
+    # 밸런스 점수를 위한 데이터
+    # 딕서너리 데이터 형식을 리스트로 변환
+    balanceParticipantsList = list(participants.keys())
+
+    # 시즌 랭킹 점수 데이터
+    seasonDatas = []    
+    for member in balanceParticipantsList:
+        seasonDatas.append(riotApiManager.getSummonerCurrentSeasonInfo(member))
+
 
     # TODO 소환사 데이터 예외 처리 >>>
-    if summonerData == None:
-        embed.add_field(name = "No summoner exists", value = text, inline = True)  #TODO: string resource
-    else:
-        seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo(text)
-        print(seasonDatas)
+    # if summonerData == None:
+    #     embed.add_field(name = "No summoner exists", value = text, inline = True)  #TODO: string resource
+    # else:
+    #     seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo(text)
+    #     print(seasonDatas)
 
     ########################### <<<
     
@@ -632,11 +641,10 @@ async def mix_balance(ctx, *, text):
     else :
 
         # TODO 점수 >>
-        summonerData = riotApiManager.getSummonerDataByName(text)
-        # seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo("리재홍")
-        seasonDatas = []
+        
 
         # 임시 데이터
+        '''
         seasonDatas.append([None, {
         'leagueId': '8c971141-028b-4acd-bf52-83661880c866',
         'queueType': 'RANKED_FLEX_SR',
@@ -654,24 +662,8 @@ async def mix_balance(ctx, *, text):
         '킬': '펜타킬'
         }
         ])
-        
-        seasonDatas.append([None, {
-        'leagueId': '8c971141-028b-4acd-bf52-83661880c866',
-        'queueType': 'RANKED_FLEX_SR',
-        'tier': 'IRON',
-        'rank': 'I',
-        'summonerId': 'dE96DANS0JUJgHhuZf25Ynf25LAkBB3jlJ2fOd0ODJaejIk',
-        'summonerName': '두리쥬와두리',
-        'leaguePoints': 50,
-        'wins': 1,
-        'losses': 7,
-        'veteran': False,
-        'inactive': False,
-        'freshBlood': False,
-        'hotStreak': False,
-        '킬': '더블킬'
-        }
-        ])
+        '''
+       
 
 
         # 필요한 정보만 담긴 딕셔너리로 변환
