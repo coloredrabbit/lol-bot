@@ -481,12 +481,7 @@ async def _getRecentMatchData(text, matchSize):
         if recentMatchList:
             for match in recentMatchList:
                 matchData = riotApiManager._getMatchData(match["gameId"])
-                statKills = 0
-                statDeaths = 0
-                statAssists = 0
-                statKda = 0
-                statChampionLevel = 0
-
+                
                 inTheMatchTargetParticipantId = -1
                 for participantIdentity in matchData["participantIdentities"]:
                     if participantIdentity["player"]["summonerName"] == summonerData["name"]:
@@ -510,7 +505,6 @@ async def _getRecentMatchData(text, matchSize):
                 recentMatchData['kill_avg'] /= matchLength
                 recentMatchData['death_avg'] /= matchLength
                 recentMatchData['assist_avg'] /= matchLength
-    print(recentMatchData)
     return recentMatchData
 
 
