@@ -464,9 +464,12 @@ async def banpick(ctx, *, text=''): #TODO delete = ''
             )
         await ctx.send(embed=embed)
 
-async def _getRecentMatchData(text):
+async def _getRecentMatchData(text, matchSize):
     summonerData = riotApiManager.getSummonerDataByName(text)
     recentMatchData = {
+        'kill_avg': 0,
+        'death_avg': 0,
+        'assist_avg': 0,
         'doubleKills': 0,
         'tripleKills': 0,
         'quadraKills': 0,
@@ -474,7 +477,7 @@ async def _getRecentMatchData(text):
     }
 
     if summonerData != None:
-        recentMatchList = riotApiManager.getCurrentMatchList(text, 20)
+        recentMatchList = riotApiManager.getCurrentMatchList(text, matchSize)
         if recentMatchList:
             for match in recentMatchList:
                 matchData = riotApiManager._getMatchData(match["gameId"])
@@ -492,26 +495,24 @@ async def _getRecentMatchData(text):
 
                 for participantMatchData in matchData["participants"]:
                     if participantMatchData["participantId"] == inTheMatchTargetParticipantId:
-                        statKills = participantMatchData["stats"]["kills"]
-                        statDeaths = participantMatchData["stats"]["deaths"]
-                        statAssists = participantMatchData["stats"]["assists"]                        
-                        statChampionLevel = participantMatchData["stats"]["champLevel"]
+                        recentMatchData['kill_avg'] += participantMatchData["stats"]["kills"]
+                        recentMatchData['death_avg'] += participantMatchData["stats"]["deaths"]
+                        recentMatchData['assist_avg'] += participantMatchData["stats"]["assists"]                        
+                        # statChampionLevel = participantMatchData["stats"]["champLevel"]
 
-                        statDoubleKills = participantMatchData["stats"]["doubleKills"]
-                        statTripleKills = participantMatchData["stats"]["tripleKills"]
-                        statQuadraKills = participantMatchData["stats"]["quadraKills"]
-                        statPentaKills = participantMatchData["stats"]["pentaKills"]
+                        recentMatchData['doubleKills'] += participantMatchData["stats"]["doubleKills"]
+                        recentMatchData['tripleKills'] += participantMatchData["stats"]["tripleKills"]
+                        recentMatchData['quadraKills'] += participantMatchData["stats"]["quadraKills"]
+                        recentMatchData['pentaKills'] += participantMatchData["stats"]["pentaKills"]
                         # statDoubleKills = participantMatchData["stats"]["doubleKills"]
+            if len(recentMatchList) != 0:
+                matchLength = len(recentMatchList)
+                recentMatchData['kill_avg'] /= matchLength
+                recentMatchData['death_avg'] /= matchLength
+                recentMatchData['assist_avg'] /= matchLength
+    print(recentMatchData)
+    return recentMatchData
 
-                        if statDeaths == 0:
-                            statKda = 'P'
-                        else:
-                            statKda = round((statKills + statAssists) / statDeaths, 2)
-                        break
-                # fv_champion.append("{} (Lv. {})".format(riotApiManager._championKey2LocalName[match["champion"]], statChampionLevel))
-                # fv_kill_death_assist.append("{}/{}/{} ({})".format(statKills, statDeaths, statAssists, statKda))
-                # fv_lane.append(match["lane"])
-    
 
 output_random_index = 0 # 랜덤 돌리기 횟수
 team_group_random = {} # 랜덤으로 빌딩된 팀
