@@ -6,10 +6,10 @@ import time
 import atexit
 import codecs
 
-from resource.stringconstant import *
+from ..resource.stringconstant import *
 
 def getDiscordChannelManager():
-    FILE_PATH_CHANNEL_DATA = './src/resource/_channel_data.dcgg'
+    FILE_PATH_CHANNEL_DATA = './src/resource/_cache/_channel_data.dcgg'
 
     '''
     connectedChannels {
@@ -122,13 +122,13 @@ def getDiscordChannelManager():
             nonlocal _connectedChannels
             _connectedChannels[channelId]['recommandedTeam'] = recommandedTeam
 
-        def setOptions(self, channelId, options):
-            nonlocal _connectedChannels
-            _connectedChannels[channelId]['options'] = participants
+        # def setOptions(self, channelId, options):
+        #     nonlocal _connectedChannels
+        #     _connectedChannels[channelId]['options'] = participants
 
         def clearChannelData(self, channelId):
             nonlocal _connectedChannels
-            _connectedChannels[channelId]['participants'] = []
+            _connectedChannels[channelId]['participants'] = {}
             _connectedChannels[channelId]['recommandedTeam'] = []
 
     return DiscordChannelManager()

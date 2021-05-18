@@ -7,10 +7,11 @@ import random
 import sys
 from itertools import combinations
 
-from resource.stringconstant import *
-from functional._discord_channel_manager import getDiscordChannelManager
+from ..resource.stringconstant import *
+from ._discord_channel_manager import getDiscordChannelManager
 
 STR_AVATAR_PATH = "src/resource/icons/64x64.png"
+LIMIT_PARTICIPANT_COUNT = 10
 
 app = commands.Bot(command_prefix='!dc')
 discordChannelManager = getDiscordChannelManager()
@@ -163,6 +164,7 @@ async def show(ctx):
     if len(participants) == 0:
         embed.add_field(
             name = 'No participant exists'
+            , value = 'No participant exists'
             , inline = True
         )
     else :
@@ -193,11 +195,16 @@ async def show(ctx):
 async def add(ctx, *, text):
     participants = discordChannelManager.getParticipants(ctx.channel.id)
     options = discordChannelManager.getOptions(ctx.channel.id)
-
+    print(participants)
     matchEndIndex = options['_bring_match_size']
 
+    addedParticipants = text.split(',')
+    if len(participants) + len(addedParticipants) > LIMIT_PARTICIPANT_COUNT:
+        await ctx.send(embed=_createPlainDiscordMessage('Error', 'Participant size error', 'Participants cannot exceed to {}'.format(LIMIT_PARTICIPANT_COUNT)))
+        return
+
     invalidSummonerNames = []
-    for participant in text.split(','):
+    for participant in addedParticipants:
         participant = participant.strip()
         if not participant in participants:
             summonerData = riotApiManager.getSummonerDataByName(participant)
@@ -243,7 +250,7 @@ async def rem(ctx, *, text):
 @app.command(aliases=aliasesList["reset"])
 async def reset(ctx, *, text):
     discordChannelManager.clearChannelData(ctx.channel.id)
-    await show('```All remanined data in server have been removed```')
+    await show(ctx)
 
 @app.command(aliases=aliasesList["exit"])
 async def exit(ctx):

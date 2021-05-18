@@ -5,8 +5,7 @@ import codecs
 import urllib
 
 from collections import defaultdict
-
-from resource.stringconstant import *
+from ..resource.stringconstant import *
 
 #TODO
 def _riotApiManagerGenerator(riotApiKey):
