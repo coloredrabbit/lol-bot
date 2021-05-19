@@ -29,18 +29,18 @@ def hasPrefix(msg):
     return False
 
 aliasesList = {
-    "info": ['정보'],
-    "rot": ['로테', '로테이션'],
+    "info": ['info', '정보'],
+    "rot": ['rot', '로테', '로테이션'],
     "show": ['s', '인원', '리스트', '참가자'],
     "add": ['a', '참가', '참여'],
     "rem": ['rm', '삭제', '제외'],
     "reset": ['rs', '초기화', '리셋'],
     "exit": ['종료', '서버종료', '꺼져'],
-    "tier": ['티어'],
-    "record": ['전적'],
-    "banpick": ['밴픽'],
-    "mix_random": ['랜덤'],
-    "mix_balance": ['밸런스']
+    "tier": ['tier', '티어'],
+    "record": ['record', '전적'],
+    "banpick": ['ban', '밴픽'],
+    "mix_random": ['ran', '랜덤'],
+    "mix_balance": ['bal', '밸런스']
 }
 
 async def executeCommand(ctx, cmd, text):

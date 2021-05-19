@@ -1,3 +1,113 @@
 {
-    ""
+    "intro": {
+        "title": "",
+        "fields": [
+            {
+                "name": "dc.gg",
+                "values": [
+                    "반갑습니다. dc.gg입니다",
+                    "명령어는 ```@dc.gg help```로 확인 가능합니다.",
+                    "명령어는 https://github.com/coloredrabbit/lol-bot/blob/main/README.md를 참고해주세요."
+                ],
+                "inline": true
+            }
+        ]
+    },
+    "usage": {
+        "descriptions":{
+            "info": {
+                "name": "정보",
+                "values": [
+                    "TODO 안병현"
+                ],
+                "inline": true
+            },
+            "rot": {
+                "name": "로테이션",
+                "values": [
+                    "현재 선택할 수 있는 챔피언 로테이션을 보여줍니다.",
+                    "명령어 리스트 : 'rot', '로테', '로테이션'",
+                    "예) ``` @dc.gg rot```, ``` @dc.gg 로테```"
+                ],
+                "inline": true
+            },
+            "show": {
+                "name": "참가자",
+                "values": [
+                    "현재 내전에 참가하고 있는 참가자를 보여줍니다.",
+                    "명령어 리스트 : 's', '인원', '리스트', '참가자'",
+                    "예) ``` @dc.gg s```, ``` @dc.gg 인원```"
+                ],
+                "inline": true
+            },
+            "add": {
+                "name": "참가",
+                "values": [
+                    "내전에 참가할 인원을 추가합니다. 한국 서버 닉네임 기준으로하며 콤마(,)로 구분하여 이름을 나열할 수 있습니다.",
+                    "명령어 리스트 : 'a', '참가', '참여'",
+                    "예) ```@dc.gg a 카쥑스매니아```, ```@dc.gg 참가 카쥑스매니아, 두리쥬와두리, 리재홍```"
+                ],
+                "inline": true
+            },
+            "rem": {
+                "name": "제외",
+                "values": [
+                    "내전에 참가된 인원을 제외합니다. 콤마(,)로 구분하여 이름을 나열할 수 있습니다.",
+                    "명령어 리스트 : 'rm', '삭제', '제외'",
+                    "예) ```@dc.gg rm 카쥑스매니아```, ```@dc.gg 제외 카쥑스매니아, 두리쥬와두리, 리재홍```"
+                ],
+                "inline": true
+            },
+            "reset": {
+                "name": "초기화",
+                "values": [
+                    "내전에 참가된 인원을 초기화합니다.",
+                    "명령어 리스트 : 'rs', '초기화', '리셋'",
+                    "예) ```@dc.gg rs```, ```@dc.gg 초기화```"
+                ],
+                "inline": true
+            },
+            "tier": {
+                "name": "티어",
+                "values": [
+                    "입력된 사용자의 티어를 확인합니다.",
+                    "명령어 리스트 : 'tier', '티어'",
+                    "예) ```@dc.gg tier 카쥑스매니아```, ```@dc.gg 티어 카쥑스매니아```"
+                ],
+                "inline": true
+            },
+            "record": {
+                "name": "전적",
+                "values": [
+                    "입력된 사용자의 최근 전적을 확인합니다.",
+                    "명령어 리스트 : 'record', '전적'",
+                    "예) ```@dc.gg record 카쥑스매니아```, ```@dc.gg 전적 카쥑스매니아```"
+                ],
+                "inline": true
+            },
+            "banpick": {
+                "name": "밴픽",
+                "values": [
+                    "팀 리스트를 기반으로 추천 밴픽을 받습니다",
+                    "명령어 리스트 : 'ban', '밴픽'",
+                    "예) ```@dc.gg ban```, ```@dc.gg 밴픽```"
+                ],
+                "inline": true
+            },
+            "mix_random": {
+                "name": "랜덤",
+                "values": [
+                    "TODO: 김다인"
+                ],
+                "inline": true
+            },
+            "mix_balance": {
+                "name": "밸런스",
+                "values": [
+                    "TODO: 김다인"
+                ],
+                "inline": true
+            }
+        }
+    }
 }
