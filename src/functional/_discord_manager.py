@@ -622,15 +622,10 @@ async def mix_balance(ctx, *, text):
     participants = discordChannelManager.getParticipants(ctx.channel.id)
     num_of_participants = int(len(list(participants.keys())))
 
-    # 밸런스 점수를 위한 데이터
+    # 밸런스 점수를 위한 데이터, 참가자들명단만 저장
     # 딕서너리 데이터 형식을 리스트로 변환
     balanceParticipantsList = list(participants.keys())
-
-    # 시즌 랭킹 점수 데이터
-    seasonDatas = []    
-    for member in balanceParticipantsList:
-        seasonDatas.append(riotApiManager.getSummonerCurrentSeasonInfo(member))
-
+    print(balanceParticipantsList) #!debug
 
     # TODO 소환사 데이터 예외 처리 >>>
     # if summonerData == None:
@@ -642,13 +637,28 @@ async def mix_balance(ctx, *, text):
     ########################### <<<
     
     if not participants:
-        await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
-    elif num_of_participants != 10:
-        await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
+        await ctx.send('@dc.gg 참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
+    # elif num_of_participants != 10:
+    #     await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
     else :
 
         # TODO 점수 >>
-        
+
+        # 시즌 랭킹 점수 데이터
+        seasonDatas = []    
+        seasonDatas_element = {}
+        for member in balanceParticipantsList:
+            seasonDatas_element[member] = riotApiManager.getSummonerCurrentSeasonInfo(member)
+            
+        seasonDatas.append(seasonDatas_element)
+        print(seasonDatas) #!debug
+
+        # print(seasonDatas[0]['꾸르준'][0]['tier']) # !debug
+
+        # scoreDatas = []
+        # scoreDatas_element = {}
+        # for member in balanceParticipantsList:
+        #     seasonDatas_element[member] = get_score_data(seasonDatas_value,participants_value)
 
         # 임시 데이터
         '''
@@ -670,8 +680,6 @@ async def mix_balance(ctx, *, text):
         }
         ])
         '''
-       
-
 
         # 필요한 정보만 담긴 딕셔너리로 변환
         # 개인의 점수 담기
@@ -689,12 +697,14 @@ async def mix_balance(ctx, *, text):
         '''
 
 
-        '''
+        
         balanceParticipants = {}
 
+        
         for k, v in participants.items():
             balanceParticipants[k] = v['profileIconId'] # TODO 점수
 
+        '''
         personal_score = 0
 
         for i in seasonDatas:
@@ -757,11 +767,29 @@ async def mix_balance(ctx, *, text):
         await ctx.send(embed=_getBalanceAsString())
 
 
-def get_score_data(seasonDatas_value, participants_value):
+def get_score_data(seasonDatas_list, participants_value):
     score_data = {} # 점수 집계할 데이터만 모음
-    score_data['tier'] = seasonDatas_value['tier']
+
+    # 솔랭 데이터가 없을 때
+    if not seasonDatas_list[0] :
+        score_data['tier'] = seasonDatas_list[1]['tier']
+        score_data['percentage_of_recent_victories'] = seasonDatas_list[1]['wins']/(seasonDatas_list[1]['wins']+seasonDatas_list[1]['losses'])
+        # TODO lane, number_of_kill
+
+    # 자랭 데이터가 없을 때
+    elif not seasonDatas_list[1] :
+        score_data['tier'] = seasonDatas_list[1]['tier']
+        score_data['percentage_of_recent_victories'] = seasonDatas_list[0]['wins']/(seasonDatas_list[0]['wins']+seasonDatas_list[0]['losses'])
+        # TODO lane, number_of_kill
+    
+    # TODO 랭크 데이터가 없을 때
+    elif not seasonDatas_list[0] and not seasonDatas_list[1] :
+        score_data['tier'] = 'IRON'
+        score_data['percentage_of_recent_victories'] = 0
+        # TODO lane, number_of_kill
+
+
     score_data['lane'] = participants_value['recentMostLane']
-    score_data['percentage_of_recent_victories'] = seasonDatas_value[1]['wins']/(seasonDatas_value[1]['wins']+seasonDatas_value[1]['losses'])
     score_data['number_of_kill'] = 0 # TODO KDA 가져올 API 필요
 
     return score_data
