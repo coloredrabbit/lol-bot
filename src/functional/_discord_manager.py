@@ -36,8 +36,8 @@ aliasesList = {
     "rem": ['rm', '삭제', '제외'],
     "reset": ['rs', '초기화', '리셋'],
     "exit": ['종료', '서버종료', '꺼져'],
-    "tier": ['tier', '티어'],
-    "record": ['record', '전적'],
+    "tier": ['티어'],
+    "record": ['전적'],
     "banpick": ['ban', '밴픽'],
     "mix_random": ['ran', '랜덤'],
     "mix_balance": ['bal', '밸런스']
