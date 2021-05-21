@@ -645,15 +645,14 @@ async def mix_balance(ctx, *, text):
         # TODO 점수 >>
 
         # 시즌 랭킹 점수 데이터
-        seasonDatas = []    
         seasonDatas_element = {}
         for member in balanceParticipantsList:
             seasonDatas_element[member] = riotApiManager.getSummonerCurrentSeasonInfo(member)
             
-        seasonDatas.append(seasonDatas_element)
-        print(seasonDatas) #!debug
+        # print(seasonDatas_element) #! debug
+        # print(participants) #!debug
 
-        # print(seasonDatas[0]['꾸르준'][0]['tier']) # !debug
+        # print(seasonDatas_list[0]['꾸르준'][0]['tier']) # !debug
 
         # scoreDatas = []
         # scoreDatas_element = {}
@@ -689,14 +688,17 @@ async def mix_balance(ctx, *, text):
         2. kda api 확인
         '''
 
-        '''
-        personal_score = 0
+        
+        # 랭크 데이터 점수
+        personal_score_element_season = {}
+        
+        for sk,sv in seasonDatas_element.items():
+            personal_score_element_season[sk] = get_score_data_seasonDatas(sv)
 
-        for sk, pk, pv in seasonDatas, participants.items(): #pk : 소환사명
-            score_data[pk] = get_score_data(sv, pv) 
-        '''
-
-
+        print(personal_score_element_season) #!debug
+        # for sk, pk, pv in seasonDatas, participants.items(): #pk : 소환사명
+        #     score_data[pk] = get_score_data(sv, pv) 
+        
         
         balanceParticipants = {}
 
@@ -767,29 +769,40 @@ async def mix_balance(ctx, *, text):
         await ctx.send(embed=_getBalanceAsString())
 
 
-def get_score_data(seasonDatas_list, participants_value):
+def get_score_data_seasonDatas(seasonDatas_list):
     score_data = {} # 점수 집계할 데이터만 모음
 
+    # TODO 랭크 데이터가 없을 때
+    if seasonDatas_list[0] == None and seasonDatas_list[1] == None:
+        score_data['tier'] = 'IRON' # TODO 예외 처리 필요
+        score_data['percentage_of_recent_victories'] = 0 # TODO 예외 처리 필요
+
     # 솔랭 데이터가 없을 때
-    if not seasonDatas_list[0] :
+    elif seasonDatas_list[0] == None:
         score_data['tier'] = seasonDatas_list[1]['tier']
         score_data['percentage_of_recent_victories'] = seasonDatas_list[1]['wins']/(seasonDatas_list[1]['wins']+seasonDatas_list[1]['losses'])
-        # TODO lane, number_of_kill
 
     # 자랭 데이터가 없을 때
-    elif not seasonDatas_list[1] :
-        score_data['tier'] = seasonDatas_list[1]['tier']
+    elif seasonDatas_list[1] == None:
+        score_data['tier'] = seasonDatas_list[0]['tier']
         score_data['percentage_of_recent_victories'] = seasonDatas_list[0]['wins']/(seasonDatas_list[0]['wins']+seasonDatas_list[0]['losses'])
-        # TODO lane, number_of_kill
     
-    # TODO 랭크 데이터가 없을 때
-    elif not seasonDatas_list[0] and not seasonDatas_list[1] :
-        score_data['tier'] = 'IRON'
-        score_data['percentage_of_recent_victories'] = 0
-        # TODO lane, number_of_kill
+    # TODO 둘 다 있을 때 
+    else :
+        score_data['tier'] = seasonDatas_list[0]['tier'] # TODO 자랭.. 솔랭...
+        score_data['percentage_of_recent_victories'] = (seasonDatas_list[0]['wins']+seasonDatas_list[1]['wins'])/(seasonDatas_list[0]['wins']+seasonDatas_list[0]['losses']+seasonDatas_list[1]['wins']+seasonDatas_list[1]['losses'])
+        
+    
+    return score_data
 
+def get_score_data_participantsDatas(participants_items):
+    score_data = {} # 점수 집계할 데이터만 모음
 
-    score_data['lane'] = participants_value['recentMostLane']
+    # TODO 
+    if not participants_items :
+        return
+
+    score_data['lane'] = participants_items['recentMostLane']
     score_data['number_of_kill'] = 0 # TODO KDA 가져올 API 필요
 
     return score_data
