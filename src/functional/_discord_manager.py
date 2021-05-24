@@ -690,15 +690,19 @@ async def mix_balance(ctx, *, text):
 
         
         # 랭크 데이터 점수
-        personal_score_element_season = {}
+        personal_score_element = {}
         
         for sk,sv in seasonDatas_element.items():
-            personal_score_element_season[sk] = get_score_data_seasonDatas(sv)
+            personal_score_element[sk] = get_score_data_seasonDatas(sv)
 
-        print(personal_score_element_season) #!debug
-        # for sk, pk, pv in seasonDatas, participants.items(): #pk : 소환사명
-        #     score_data[pk] = get_score_data(sv, pv) 
+        temp_element = {}
+ 
+        for pk,pv in participants.items():
+            temp_element = personal_score_element[pk]
+            temp_element.update(get_score_data_participantsDatas(pv))
+            personal_score_element[pk] = temp_element
         
+        print(personal_score_element) #!debug
         
         balanceParticipants = {}
 
@@ -794,6 +798,7 @@ def get_score_data_seasonDatas(seasonDatas_list):
         
     
     return score_data
+
 
 def get_score_data_participantsDatas(participants_items):
     score_data = {} # 점수 집계할 데이터만 모음
