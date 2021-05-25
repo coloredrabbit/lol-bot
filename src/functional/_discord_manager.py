@@ -696,17 +696,36 @@ async def mix_balance(ctx, *, text):
             personal_score_element[sk] = get_score_data_seasonDatas(sv)
 
         temp_element = {}
+        kda_element = {}
+
+        # !debug
+        # dain = riotApiManager.getSummonerDataByName('두리쥬와두리')
+        # print(dain)
+        # kda_element = await _getRecentMatchData('두리쥬와두리', 30)
+        # kda_element2 = await _getRecentMatchData('꾸르준',30)
+        # kda_element3 = await _getRecentMatchData('카쥑스매니아',30)
+        # print('두리',kda_element)
+        # print('꾸르준',kda_element2)
+        # print('병형',kda_element3)
  
         for pk,pv in participants.items():
             temp_element = personal_score_element[pk]
             temp_element.update(get_score_data_participantsDatas(pv))
+            temp_element.update(await _getRecentMatchData(pk, 30)) # 최근 30경기
             personal_score_element[pk] = temp_element
         
         print(personal_score_element) #!debug
+
+        #! debug
+        # for k, v in personal_score_element.items():
+        #     print('-----------')
+        #     print(get_score(v))
+        #     print('-----------')
         
+
+        # 점수를 담고 있는 딕셔너리
         balanceParticipants = {}
 
-        
         for k, v in participants.items():
             balanceParticipants[k] = v['profileIconId'] # TODO 점수
 
@@ -813,8 +832,9 @@ def get_score_data_participantsDatas(participants_items):
     return score_data
 
 
-def get_score(seasonDatas):
+def get_score(scoreDatas):
     score = {} # 롤 점수 가중치 정의
+
     score['tier'] = {
         'IRON':1.0,
         'BRONZE':2.0,
@@ -825,16 +845,24 @@ def get_score(seasonDatas):
         'MASTER':60,
         'GRAND MASTER':120.0,
         'CHALLENGER':250.0}
-    score['lane']=10.0
-    score['percentage_of_victories']=seasonDatas[1]['wins']/(seasonDatas[1]['wins']+seasonDatas[1]['losses'])
+    # score['lane']=10.0
+    score['percentage_of_victories']=scoreDatas[1]['wins']/(scoreDatas[1]['wins']+scoreDatas[1]['losses'])
     score['number_of_kill']={
-        '더블킬':1.0,
-        '트리플킬':5.0,
-        '쿼드라킬':10.0,
-        '펜타킬':15.0
+        'kill_avg': scoreDatas['kill_avg'] * 0.0, #TODO
+        'death_avg':scoreDatas['death_avg'] * 0.0, #TODO
+        'assist_avg':scoreDatas['death_avg'] * 0.0, #TODO
+        'doubleKills':scoreDatas['doubleKills']*1.0,
+        'tripleKills':scoreDatas['tripleKills']*5.0,
+        'quadraKills':scoreDatas['quadraKills']*10.0,
+        'pentaKills':scoreDatas['pentaKills']*15.0
     }
 
-    personal_score = float(score['tier'][seasonDatas[1]['tier']]) * 0.4 + float(score['percentage_of_victories'])*0.2+float(score['number_of_kill'][seasonDatas[1]['킬']])*0.2
+    # 최근 20경기 연속킬 횟수 분포 점수
+    number_of_kill_score = 0
+    for k,v in score['number_of_kill'].items():
+        number_of_kill_score += v
+
+    personal_score = float(score['tier'][scoreDatas[1]['tier']]) * 0.4 + float(score['percentage_of_victories'])*0.2+number_of_kill_score*0.2
 
     return personal_score
 
