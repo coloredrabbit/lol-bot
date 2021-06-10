@@ -530,9 +530,9 @@ async def mix_random(ctx):
     global num_per_team
 
     if not participants: # 참가자가 0명일 때
-        await ctx.send('!참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
+        await ctx.send('@dc.gg 참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
     elif num_of_participants == 1 :
-        await ctx.send('랜덤 팀 빌딩 가능 최소인원은 2명입니다. 따라서, !참가 명령으로 참가할 인원을 추가해주세요.')
+        await ctx.send('랜덤 팀 빌딩 가능 최소인원은 2명입니다. 따라서, @dc.gg 참가 명령으로 참가할 인원을 추가해주세요.')
     else:
         if num_of_participants % 10 == 0 :
             temp_ten = int(num_of_participants / 10)
@@ -638,8 +638,8 @@ async def mix_balance(ctx, *, text):
     
     if not participants:
         await ctx.send('@dc.gg 참가 명령으로 내전에 참가할 인원을 먼저 추가해주세요')
-    # elif num_of_participants != 10:
-    #     await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
+    elif num_of_participants != 10:
+        await ctx.send('현재는 딱! 10명이어야만 팀 빌딩이 가능합니다')
     else :
 
         # TODO 점수 >>
@@ -648,48 +648,9 @@ async def mix_balance(ctx, *, text):
         seasonDatas_element = {}
         for member in balanceParticipantsList:
             seasonDatas_element[member] = riotApiManager.getSummonerCurrentSeasonInfo(member)
-            
-        # print(seasonDatas_element) #! debug
-        # print(participants) #!debug
-
-        # print(seasonDatas_list[0]['꾸르준'][0]['tier']) # !debug
-
-        # scoreDatas = []
-        # scoreDatas_element = {}
-        # for member in balanceParticipantsList:
-        #     seasonDatas_element[member] = get_score_data(seasonDatas_value,participants_value)
-
-        # 임시 데이터
-        '''
-        seasonDatas.append([None, {
-        'leagueId': '8c971141-028b-4acd-bf52-83661880c866',
-        'queueType': 'RANKED_FLEX_SR',
-        'tier': 'SILVER',
-        'rank': 'I',
-        'summonerId': 'dE96DANS0JUJgHhuZf25Ynf25LAkBB3jlJ2fOd0ODJaejIk',
-        'summonerName': '카쥑스매니아',
-        'leaguePoints': 62,
-        'wins': 6,
-        'losses': 6,
-        'veteran': False,
-        'inactive': False,
-        'freshBlood': False,
-        'hotStreak': False,
-        '킬': '펜타킬'
-        }
-        ])
-        '''
-
-        # 필요한 정보만 담긴 딕셔너리로 변환
-        # 개인의 점수 담기
-        '''
-        # TODO 항목
-        1. seasonDatas 구조 확인
-        2. kda api 확인
-        '''
 
         
-        # 랭크 데이터 점수
+        # 랭크 데이터 점수 항목 별 값을 담은 딕셔너리
         personal_score_element = {}
         
         for sk,sv in seasonDatas_element.items():
@@ -697,47 +658,22 @@ async def mix_balance(ctx, *, text):
 
         temp_element = {}
         kda_element = {}
-
-        # !debug
-        # dain = riotApiManager.getSummonerDataByName('두리쥬와두리')
-        # print(dain)
-        # kda_element = await _getRecentMatchData('두리쥬와두리', 30)
-        # kda_element2 = await _getRecentMatchData('꾸르준',30)
-        # kda_element3 = await _getRecentMatchData('카쥑스매니아',30)
-        # print('두리',kda_element)
-        # print('꾸르준',kda_element2)
-        # print('병형',kda_element3)
  
         for pk,pv in participants.items():
             temp_element = personal_score_element[pk]
             temp_element.update(get_score_data_participantsDatas(pv))
+            print(pk) #!debug 범인색출
             temp_element.update(await _getRecentMatchData(pk, 30)) # 최근 30경기
             personal_score_element[pk] = temp_element
-        
-        print(personal_score_element) #!debug
-
-        #! debug
-        # for k, v in personal_score_element.items():
-        #     print('-----------')
-        #     print(get_score(v))
-        #     print('-----------')
         
 
         # 점수를 담고 있는 딕셔너리
         balanceParticipants = {}
 
-        for k, v in participants.items():
-            balanceParticipants[k] = v['profileIconId'] # TODO 점수
+        for k, v in personal_score_element.items():
+            balanceParticipants[k] = get_score(v)
 
-        '''
-        personal_score = 0
-
-        for i in seasonDatas:
-            personal_score += get_score(i)
-            #+score['lane']
-        '''
-
-        ###################<<
+        print(balanceParticipants) #!debug
         
         index = 0
         team_combinations = [] # 팀 조합으로 소환사명만 들어있는 list
@@ -846,7 +782,7 @@ def get_score(scoreDatas):
         'GRAND MASTER':120.0,
         'CHALLENGER':250.0}
     # score['lane']=10.0
-    score['percentage_of_victories']=scoreDatas[1]['wins']/(scoreDatas[1]['wins']+scoreDatas[1]['losses'])
+    score['percentage_of_victories']=scoreDatas['percentage_of_recent_victories']
     score['number_of_kill']={
         'kill_avg': scoreDatas['kill_avg'] * 0.0, #TODO
         'death_avg':scoreDatas['death_avg'] * 0.0, #TODO
@@ -862,7 +798,7 @@ def get_score(scoreDatas):
     for k,v in score['number_of_kill'].items():
         number_of_kill_score += v
 
-    personal_score = float(score['tier'][scoreDatas[1]['tier']]) * 0.4 + float(score['percentage_of_victories'])*0.2+number_of_kill_score*0.2
+    personal_score = float(score['tier'][scoreDatas['tier']]) * 0.4 + float(score['percentage_of_victories'])*0.2+number_of_kill_score*0.2
 
     return personal_score
 
