@@ -784,9 +784,9 @@ def get_score(scoreDatas):
     # score['lane']=10.0
     score['percentage_of_victories']=scoreDatas['percentage_of_recent_victories']
     score['number_of_kill']={
-        'kill_avg': scoreDatas['kill_avg'] * 0.0, #TODO
-        'death_avg':scoreDatas['death_avg'] * 0.0, #TODO
-        'assist_avg':scoreDatas['death_avg'] * 0.0, #TODO
+        'kill_avg': scoreDatas['kill_avg'] * 20.0, 
+        'death_avg':scoreDatas['death_avg'] * -10.0, 
+        'assist_avg':scoreDatas['assist_avg'] * 10.0, 
         'doubleKills':scoreDatas['doubleKills']*1.0,
         'tripleKills':scoreDatas['tripleKills']*5.0,
         'quadraKills':scoreDatas['quadraKills']*10.0,
