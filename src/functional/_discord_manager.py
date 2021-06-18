@@ -254,7 +254,7 @@ async def reset(ctx, *, text):
 
 @app.command(aliases=aliasesList["exit"])
 async def exit(ctx):
-    await ctx.send('시스템을 종료합니다') #TODO string resouce
+    await ctx.send(MSG_TERMINATE_SERVER)
     sys.exit()
 
 @app.command(aliases=aliasesList["tier"])
@@ -264,7 +264,7 @@ async def tier(ctx, *, text): # TODO: 인자 하나만 받기
     embed = discord.Embed(title="{}'s tier".format(text))
     
     if summonerData == None:
-        embed.add_field(name = "No summoner exists", value = text, inline = True)  #TODO: string resource
+        embed.add_field(name = MSG_ERR_SUMMONER_NOT_FOUND, value = text, inline = True)
     else:
         seasonDatas = riotApiManager.getSummonerCurrentSeasonInfo(text)
         seasonTitles = ['Solo', 'Team']
@@ -279,12 +279,12 @@ async def tier(ctx, *, text): # TODO: 인자 하나만 받기
                         , seasonData["leaguePoints"]
                     )
             else:
-                continue # ignore                
-                message = 'Unrank' #TODO: string resource
+                continue # ignore
+                message = TIER_UNRANK
             embed.add_field(name = seasonTitles[index], value = message, inline = False)
         
         if seasonDatas[0] == None and seasonDatas[1] == None:
-            embed.add_field(name = "Unrank", value = "No tier exist", inline = True) #TODO: string resource
+            embed.add_field(name = TIER_UNRANK, value = TIER_NOT_FOUND, inline = True)
         await ctx.send(embed=embed)
 
 @app.command(aliases=aliasesList["record"])
@@ -298,7 +298,7 @@ async def record(ctx, *, text): # TODO: 인자 하나만 받기
     fv_lane              = []
 
     if summonerData == None:
-        await ctx.send(embed=_createPlainDiscordMessage('Error', 'No summoner exists', text)) #TODO: string resource
+        await ctx.send(embed=_createPlainDiscordMessage(MSG_ERR_TITLE, MSG_ERR_SUMMONER_NOT_FOUND, text))
     else:
         recentMatchList = riotApiManager.getCurrentMatchList(text, 10)
         if recentMatchList:

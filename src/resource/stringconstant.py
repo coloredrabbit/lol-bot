@@ -111,6 +111,15 @@ MSG_FREE_CHAMPION='Free champions'
 MSG_PARTICIPANTS_ADDED_SUCCESSFULLY='participants added successfully.'
 MSG_PARTICIPANTS_REMOVED_SUCCESSFULLY='participants removed successfully.'
 
+MSG_TERMINATE_SERVER='Terminate server...'
+
+TIER_NOT_FOUND='No tier exist'
+
 # error message
+MSG_ERR_TITLE='Error'
 MSG_ERR_ADDING_PARTICIPANTS='Cannot add the participants cause by {}'
 MSG_ERR_REMOVING_PARTICIPANTS='Cannot remove the participants cause by {}'
+MSG_ERR_SUMMONER_NOT_FOUND='No summoner exists'
+
+# plain string resource
+TIER_UNRANK='[Unrank]'
