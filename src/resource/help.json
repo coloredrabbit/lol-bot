@@ -16,9 +16,33 @@
     "usage": {
         "descriptions":{
             "info": {
-                "name": "정보",
+                "name": "개발자 정보",
                 "values": [
-                    "TODO 안병현"
+                    "안병현(Byung Hyun An)",
+                    "Discord: [TODO: 디스코드 채널]",
+                    "Git: [TODO: Git 채널, https://github.com/coloredrabbit]",
+                    "저는요: 그냥 저냥 이것저것 만드는 개발자입니다",
+                    "dc.gg 담당: Riot API 관련 처리, 프로젝트 기획 및 설계 제안, 봇 명령어 구조 설계 등",
+                    "대표 웹사이트: https://coloredrabbit.tistory.com/"
+                ],
+                "inline": true
+            },
+            "developer": {
+                "name": "개발자 정보",
+                "values": [
+                    "안병현(Byung Hyun An)",
+                    "Discord: [TODO: 디스코드 채널]",
+                    "Git: [TODO: Git 채널, https://github.com/coloredrabbit]",
+                    "저는요: 그냥 저냥 이것저것 만드는 개발자입니다",
+                    "dc.gg 담당: Riot API 관련 처리, 프로젝트 기획 및 설계 제안, 봇 명령어 구조 설계 등",
+                    "대표 웹사이트: https://coloredrabbit.tistory.com/",
+
+                    "김다인(Da In Kim)",
+                    "Discord: [TODO: 디스코드 채널]",
+                    "Git: [TODO: Git 채널, ]",
+                    "저는요: ",
+                    "dc.gg 담당: ",
+                    "대표 웹사이트: https://doongjeol.tistory.com/"
                 ],
                 "inline": true
             },
