@@ -87,7 +87,7 @@ def getDiscordChannelManager():
         def __init__(self):
             _load_channel_data()
 
-        def _processingChannelExists(self, channelId):
+        def _initChannelData(self, channelId):
             nonlocal _connectedChannels
             if not channelId in _connectedChannels:
                 _connectedChannels[channelId] = {
@@ -96,13 +96,19 @@ def getDiscordChannelManager():
                     'options': _discordDefaultOption.copy() # or dict(_discordDefaultOption)
                 }
 
-        def getParticipants(self, channelId):
-            self._processingChannelExists(channelId)
+        def getParticipants(self, riotApiManager, channelId):
+            self._initChannelData(channelId)
+            nonlocal _connectedChannels
+
+            for participantName in _connectedChannels[channelId]['participants']:
+                summonerData = riotApiManager.getSummonerDataByName(participantName)
+                if summonerData == None:
+                    del _connectedChannels[channelId][participantName]
 
             return _connectedChannels[channelId]['participants']
 
         def getRecommandedTeam(self, channelId, hash):
-            self._processingChannelExists(channelId)
+            self._initChannelData(channelId)
             
             if not hash in _connectedChannels[channelId]['recommandedTeam']:
                 return [], []
@@ -110,7 +116,7 @@ def getDiscordChannelManager():
             return recommandedTeam.red, recommandedTeam.blue
 
         def getOptions(self, channelId):
-            self._processingChannelExists(channelId)
+            self._initChannelData(channelId)
 
             return _connectedChannels[channelId]['options']
 
