@@ -658,7 +658,7 @@ async def mix_balance(ctx, *, text):
 
         temp_element = {}
         kda_element = {}
- 
+
         for pk,pv in participants.items():
             temp_element = personal_score_element[pk]
             temp_element.update(get_score_data_participantsDatas(pv))
@@ -666,13 +666,35 @@ async def mix_balance(ctx, *, text):
             temp_element.update(await _getRecentMatchData(pk, 30)) # 최근 30경기
             personal_score_element[pk] = temp_element
         
+        
+        #!debug
+        debug = {
+            '되는대로삶': {
+                'tier': 'IRON',
+                'percentage_of_recent_victories': 0,
+                'lane': [('MID', 10), ('TOP', 5), ('JUNGLE', 1), ('SOLO', 1)],
+                'kill_avg': 30,
+                'death_avg': 50,
+                'assist_avg': 40,
+                'doubleKills': 30,
+                'tripleKills': 20,
+                'quadraKills': 10,
+                'pentaKills': 50
+                }
+                }
+        personal_score_element.update(debug)
+
+        print("각각 요소의 점수가 잘 들어왔는지 확인")
+        print(personal_score_element) # !debug 각각 요소의 점수가 잘 들어왔는지 확인
+        print("\n\n")
 
         # 점수를 담고 있는 딕셔너리
         balanceParticipants = {}
 
         for k, v in personal_score_element.items():
             balanceParticipants[k] = get_score(v)
-
+            
+        print("사용자마다 매겨진 점수 확인")
         print(balanceParticipants) #!debug
         
         index = 0
@@ -763,7 +785,6 @@ def get_score_data_participantsDatas(participants_items):
         return
 
     score_data['lane'] = participants_items['recentMostLane']
-    score_data['number_of_kill'] = 0 # TODO KDA 가져올 API 필요
 
     return score_data
 
@@ -793,7 +814,7 @@ def get_score(scoreDatas):
         'pentaKills':scoreDatas['pentaKills']*15.0
     }
 
-    # 최근 20경기 연속킬 횟수 분포 점수
+    # 최근 30경기 연속킬 횟수 분포 점수
     number_of_kill_score = 0
     for k,v in score['number_of_kill'].items():
         number_of_kill_score += v
