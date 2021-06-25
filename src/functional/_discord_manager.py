@@ -157,7 +157,7 @@ async def rot(ctx):
 # show participants
 @app.command(aliases=['s', '인원', '리스트', '참가자'])
 async def show(ctx):
-    participants = discordChannelManager.getParticipants(ctx.channel.id)
+    participants = discordChannelManager.getParticipants(riotApiManager, ctx.channel.id)
 
     embed = discord.Embed(title=MSG_CURRENT_PARTICIPANTS)
     
@@ -193,7 +193,7 @@ async def show(ctx):
 # add participants
 @app.command(aliases=aliasesList["add"])
 async def add(ctx, *, text):
-    participants = discordChannelManager.getParticipants(ctx.channel.id)
+    participants = discordChannelManager.getParticipants(riotApiManager, ctx.channel.id)
     options = discordChannelManager.getOptions(ctx.channel.id)
     print(participants)
     matchEndIndex = options['_bring_match_size']
@@ -241,7 +241,7 @@ async def add(ctx, *, text):
 # remove participants
 @app.command(aliases=aliasesList["rem"])
 async def rem(ctx, *, text):
-    participants = discordChannelManager.getParticipants(ctx.channel.id)
+    participants = discordChannelManager.getParticipants(riotApiManager, ctx.channel.id)
     for participant in text.split(','):
         participants.pop(participant.strip(), None)
     discordChannelManager.setParticipants(ctx.channel.id, participants)
@@ -433,7 +433,7 @@ async def banpick(ctx, *, text=''): #TODO delete = ''
         # TODO: error on no hash or no exist team
         pass
 
-    orderByMastery, orderByMostRecentChampion = recommanedBan(redTeam, blueTeam, discordChannelManager.getParticipants(ctx.channel.id))
+    orderByMastery, orderByMostRecentChampion = recommanedBan(redTeam, blueTeam, discordChannelManager.getParticipants(riotApiManager, ctx.channel.id))
 
     teamName = ['RED' , 'BLUE']
     tableMasteryHead = ['Champion', 'Participant', 'Level'] #, 'Points']
@@ -521,7 +521,7 @@ num_per_team = 5 # 팀당 인원수
 #TODO 김다인: random
 @app.command(aliases=aliasesList["mix_random"])
 async def mix_random(ctx):
-    participants = discordChannelManager.getParticipants(ctx.channel.id)
+    participants = discordChannelManager.getParticipants(riotApiManager, ctx.channel.id)
     
     num_of_participants = int(len(list(participants.keys()))) # 참가자 수
 
@@ -619,7 +619,7 @@ async def mix_balance(ctx):
     global output_balance_index
     global balance_result
     global num_per_team
-    participants = discordChannelManager.getParticipants(ctx.channel.id)
+    participants = discordChannelManager.getParticipants(riotApiManager, ctx.channel.id)
     num_of_participants = int(len(list(participants.keys())))
 
     # 밸런스 점수를 위한 데이터, 참가자들명단만 저장
