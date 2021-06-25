@@ -69,7 +69,7 @@ async def executeCommand(ctx, cmd, text):
     elif cmd in aliasesList["mix_random"]:
         await mix_random(ctx)
     elif cmd in aliasesList["mix_balance"]:
-        await mix_balance(ctx, text=text)
+        await mix_balance(ctx)
     else:
         await ctx.send('Invalid command: {}'.format(cmd))
 
@@ -615,7 +615,7 @@ balance_result = []
 
 #TODO 김다인: balance
 @app.command(aliases=aliasesList["mix_balance"])
-async def mix_balance(ctx, *, text):
+async def mix_balance(ctx):
     global output_balance_index
     global balance_result
     global num_per_team
